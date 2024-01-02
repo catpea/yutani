@@ -2,7 +2,7 @@ import Node from "./Node.js";
 
 export default class Midjourney extends Node {
 
-	prompt = "";
+	prompt = "I am a happy litte prompt.";
 	style = 'HD';
 	version = 6;
 	aspectRatio = '1:1';
@@ -25,7 +25,7 @@ export default class Midjourney extends Node {
 
 	output() {
 		// console.log('MJ>', this);
-		return `I am a happy litte prompt. ${this.style} --ar ${this.aspectRatio} --v ${this.version}`
+		return `${this.prompt} ${this.style} --ar ${this.aspectRatio} --v ${this.version}`
 	}
 
 }

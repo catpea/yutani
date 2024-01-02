@@ -5267,7 +5267,7 @@
     static {
       __name(this, "Midjourney");
     }
-    prompt = "";
+    prompt = "I am a happy litte prompt.";
     style = "HD";
     version = 6;
     aspectRatio = "1:1";
@@ -5286,7 +5286,7 @@
       return JSON.stringify(this);
     }
     output() {
-      return `I am a happy litte prompt. ${this.style} --ar ${this.aspectRatio} --v ${this.version}`;
+      return `${this.prompt} ${this.style} --ar ${this.aspectRatio} --v ${this.version}`;
     }
   };
 
