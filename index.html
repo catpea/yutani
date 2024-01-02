@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark" data-ui-theme="none">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bootstrap demo</title>
+    <link rel="shortcut icon" type="image/png" href="out"/>
+    <link href="./out/craft.css" rel="stylesheet" />
+    <script type="module" src="./out/craft.js"></script>
+    <!-- <script type="module" src="./src/tools/todom.js"></script> -->
+  </head>
+  <body class="">
+
+    <div id="signalcraft-view-1" class="col"></div>
+
+
+
+
+    <div class="container-fluid d-none">
+      <div class="row mb-3">
+        <div class="signalcraft-view-2 col"></div>
+      </div>
+      <div class="row mb-3">
+
+        <div class="col">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Output Card</h5>
+              <h6 class="card-subtitle mb-2 text-body-secondary">output from the program above</h6>
+
+              <p class="card-text">
+                Applications should be self editable. This area exists to display results generated from the program above.
+              </p>
+
+              <p id="output" class="card-text rounded p-2" style="min-height: 16rem; background: black; color: hsl(83, 83%, 46%);">
+                empty
+              </p>
+
+              <p class="card-text text-warning">
+              <button id="rerun" type="button" class="btn btn-sm btn-warning">Run</button>  or, change some text in the connected nodes, or disconnect/reconnect one.
+              </p>
+
+
+            </div>
+          </div>
+        </div>
+
+        <div class="col">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Signalcraft Preview</h5>
+              <h6 class="card-subtitle mb-2 text-body-secondary">interactivity tests</h6>
+              <p class="card-text">
+                User interface preview
+              </p>
+              <ul class="list-group list-group-flush">
+                <li class="list-group-item"><kbd>CTRL+Click</kbd> on caption or cable to select multiple.</li>
+                <li class="list-group-item"><kbd>DEL</kbd> to delete selected</li>
+                <li class="list-group-item"><kbd>Drag</kbd> a right port to a left port to create connection</li>
+                <li class="list-group-item"><kbd>Drag</kbd> a right port onto the background to create a junction</li>
+              </ul>
+              <a href="https://github.com/catpea/signalcraft" class="card-link">repository</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="col">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Zooming User Interface</h5>
+              <h6 class="card-subtitle mb-2 text-body-secondary">efficiency/CPU tests</h6>
+              <p class="card-text">
+                Fear of the simple act of zooming becoming too CPU intensive on low power computers,
+                when there is a lot on nodes on the screen.
+              </p>
+              <p class="card-text">
+                There are however no issues for editing ZUI mode, because only the editor changes size,
+                and only one editor is open at the same time.
+              </p>
+              <ul class="list-group list-group-flush">
+                <li class="list-group-item"><kbd>Click Property</kbd>
+                  You have to click a property to trigger its editor. But it won't work if you are zoomed out, since it would be too hard to see.
+                </li>
+                <li class="list-group-item"><kbd>Scrollwheel</kbd>
+                  You may notice that <em class="text-info">not all text grows larger</em> when you zoom in.
+                  That is not a bug, that is the zooming/zoomable user interface at play.
+                  Zooming in under a ZUI means you get more room.
+                </li>
+              </ul>
+
+              <p class="card-text text-warning">
+                If you can't see text, or need more room to edit it, zoom in with the scroll wheel.
+              </p>
+
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- <div class="container-fluid">
+      <div class="row mb-3">
+        <tool-todom/>
+      </div>
+    </div> -->
+
+    <script>
+      new EventSource("/esbuild").addEventListener("change", () => location.reload() );
+      console.log("EventSource LiveReload Activated");
+    </script>
+    <input type="file" id="fileSelector" multiple accept="application/json" style="display:none" />
+  </body>
+</html>

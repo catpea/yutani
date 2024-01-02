@@ -1,0 +1,45 @@
+{
+  "Junctions": [],
+  "Nodes": [
+    {
+      "x": 100,
+      "y": 100,
+      "string": "Hello",
+      "type": "text/string",
+      "id": "primaryPromptText1"
+    },
+    {
+      "x": 100,
+      "y": 300,
+      "string": "World",
+      "type": "text/string",
+      "id": "primaryPromptText2"
+    },
+    {
+      "x": 498,
+      "y": 211,
+      "target": "output",
+      "separator": "+",
+      "type": "dom/write",
+      "id": "domWrite"
+    }
+  ],
+  "Connectors": [
+    {
+      "id": "a3dc7b8e-eda8-481e-b5b9-d0b899660cdf",
+      "sourceNode": "primaryPromptText1",
+      "sourcePort": "output",
+      "targetType": "Node",
+      "targetNode": "domWrite",
+      "targetPort": "input"
+    },
+    {
+      "id": "54703d97-73d9-4585-b972-de9351a467b8",
+      "sourceNode": "primaryPromptText2",
+      "sourcePort": "output",
+      "targetType": "Node",
+      "targetNode": "domWrite",
+      "targetPort": "input"
+    }
+  ]
+}

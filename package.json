@@ -1,0 +1,47 @@
+{
+  "name": "yutani",
+  "version": "2.0.1",
+  "description": "Retro-futuristic Visual Programming Language: Moving human capital beyond tomorrow",
+  "author": "catpea",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/catpea/yutani.git"
+  },
+  "bugs": {
+    "url": "https://github.com/catpea/yutani/issues"
+  },
+  "homepage": "https://github.com/catpea/yutani#readme",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "./start.js",
+    "save": "git add .; git commit -m 'New Release'; git push; npm version patch; npm publish; git push;",
+    "test": "./try.js"
+  },
+  "keywords": [],
+  "imports": {
+    "#nodes/*.js": "./nodes/*.js",
+    "#themes/*": "./themes/*",
+    "#tools/*": "./tools/*.js"
+  },
+  "license": "ISC",
+  "workspaces": [
+    "modules/domek"
+  ],
+  "dependencies": {
+    "bootstrap": "^5.3.2",
+    "calculate-percent": "^2.1.0",
+    "lodash": "^4.17.21",
+    "oneof": "^2.1.0",
+    "panzoom": "^9.4.3",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "chalk": "^5.3.0",
+    "esbuild": "0.19.6",
+    "esbuild-sass-plugin": "^2.16.0"
+  },
+  "directories": {
+    "doc": "doc"
+  }
+}
