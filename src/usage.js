@@ -52,7 +52,7 @@ export default async function(api){
   const thirdPromptConnection = api.connect(highresPrompt2.id, 'emphasis',   midjourneyPrompt.id, 'style');
   thirdPromptConnection.enabled = false;
   api.connect(midjourneyPrompt.id, 'output',   outputNode.id, 'input');
-
+ 
   // execute your program -------------------------------------------------------------------------------------------------------------
   // const result = await api.run(outputNode.id);
   // console.log('usage.js api.execute said: ', result);

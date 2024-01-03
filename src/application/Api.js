@@ -28,7 +28,7 @@ export default class Api {
 	selectTheme(name) {
 		this.application.Setup.theme = name;
 		document.querySelector('html').dataset.uiTheme = name;
-		console.info( 'dataset.uiTheme',  document.querySelector('html').dataset.uiTheme );
+		console.info('dataset.uiTheme', document.querySelector('html').dataset.uiTheme);
 	}
 
 	selectedTheme(name) {
@@ -108,14 +108,14 @@ export default class Api {
 	removeSelected() {
 
 
-		const { Selection, Connectables,  Connections } = this.application;
+		const { Selection, Connectables, Connections } = this.application;
 
 		// there are two kinds of items that can possibly be selected,
 		// the Connections, and Connectables
 
 		// if destroung a junction both to and from connections have to go:   ----O----
-		Selection.filter(item => item.itemClass == 'Connectable').forEach(({ id }) => Connections.remove(link => link.sourceNode == id) );
-		Selection.filter(item => item.itemClass == 'Connectable').forEach(({ id }) => Connections.remove(link => link.targetNode == id) );
+		Selection.filter(item => item.itemClass == 'Connectable').forEach(({ id }) => Connections.remove(link => link.sourceNode == id));
+		Selection.filter(item => item.itemClass == 'Connectable').forEach(({ id }) => Connections.remove(link => link.targetNode == id));
 		Selection.filter(item => item.itemClass == 'Connectable').forEach(({ id }) => Connectables.remove(id));
 		// if destroyng a connector, just remove the connecor
 		Selection.filter(item => item.itemClass == 'Connection').forEach(({ id }) => Connections.remove(id));
@@ -123,6 +123,114 @@ export default class Api {
 		this.deselectAll();
 
 	}
+
+
+
+
+	moveUp() {
+		const { Selection, Connectables } = this.application;
+		let main = Selection.at(-1);
+		if(!main) main = {reference:Connectables.find(node => node.executable)};
+		if(!main) return;
+		this.deselectAll();
+		this.select(main.reference)
+		// console.log(main.reference, main.reference.itemClass);
+		if(main.reference.className == 'Connection') {
+			const connection = main.reference;
+			const node = Connectables.get(connection.targetNode);
+			const socketsWithConnections = node.Input.filter(port => port.incoming().length > 0);
+			const connectionsFromSockets = socketsWithConnections.map(socket=>socket.incoming()).flat();
+			const myIndex = connectionsFromSockets.findIndex(o=>o.id == connection.id );
+			let nextIndex = myIndex-1;
+			if(nextIndex<0) nextIndex = connectionsFromSockets.length-1;
+			this.deselectAll();
+			this.select(connectionsFromSockets[nextIndex])
+			// console.log(myIndex, connectionsFromSockets);
+		}
+	}
+
+	moveDown() {
+		const { Selection, Connectables } = this.application;
+		let main = Selection.at(-1);
+		if(!main) main = {reference:Connectables.find(node => node.executable)};
+		if(!main) return;
+		this.deselectAll();
+		this.select(main.reference)
+		// console.log(main.reference, main.reference.itemClass);
+		if(main.reference.className == 'Connection') {
+			const connection = main.reference;
+			const node = Connectables.get(connection.targetNode);
+			const socketsWithConnections = node.Input.filter(port => port.incoming().length > 0);
+			const connectionsFromSockets = socketsWithConnections.map(socket=>socket.incoming()).flat();
+			const myIndex = connectionsFromSockets.findIndex(o=>o.id == connection.id );
+			let nextIndex = myIndex+1;
+			if(nextIndex+1>connectionsFromSockets.length) nextIndex = 0;
+			this.deselectAll();
+			this.select(connectionsFromSockets[nextIndex])
+			// console.log(myIndex, connectionsFromSockets);
+		}
+	}
+
+	moveLeft() {
+		const { Selection, Connectables } = this.application;
+		let main = Selection.at(-1);
+		if(!main) main = {reference:Connectables.find(node => node.executable)};
+		if(!main) return;
+		this.deselectAll();
+		this.select(main.reference)
+		// console.log(main.reference, main.reference.itemClass);
+		if(main.reference.className == 'Connectable') {
+			const node = main.reference;
+			// const connection = node.Input.find(port => port.incoming().length > 0).incoming().at(0);
+			const socketsWithConnections = node.Input.filter(port => port.incoming().length > 0);
+			const connectionsFromSockets = socketsWithConnections.map(socket=>socket.incoming()).flat();
+			const connection = connectionsFromSockets.at(0);
+			if(connection) {
+				this.deselectAll();
+				this.select(connection)
+			}
+		} else if(main.reference.className == 'Connection') {
+			const connection = main.reference;
+			// console.log(connection);
+			const node = Connectables.get(connection.sourceNode);
+			this.deselectAll();
+			this.select(node)
+		}
+	}
+
+	moveRight() {
+		const { Selection, Connectables } = this.application;
+		let main = Selection.at(-1);
+		if(!main) main = {reference:Connectables.find(node => node.executable)};
+		if(!main) return;
+		this.deselectAll();
+		this.select(main.reference)
+		// console.log(main.reference, main.reference.itemClass);
+		if(main.reference.className == 'Connectable') {
+			const node = main.reference;
+			// const connection = node.Output.find(port => port.outgoing().length > 0).outgoing().at(0);
+			const socketsWithConnections = node.Output.filter(port => port.outgoing().length > 0);
+			const connectionsFromSockets = socketsWithConnections.map(socket=>socket.outgoing()).flat();
+			const connection = connectionsFromSockets.at(0);
+			if(connection) {
+				this.deselectAll();
+				this.select(connection)
+			}
+		} else if(main.reference.className == 'Connection') {
+			const connection = main.reference;
+			// console.log(connection);
+			const node = Connectables.get(connection.targetNode);
+			this.deselectAll();
+			this.select(node)
+		}
+	}
+
+
+
+
+
+
+
 
 
 	//

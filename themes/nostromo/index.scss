@@ -166,7 +166,7 @@ $selected-border: $selected-color;
     stroke: $selected-color;
   }
   .cable-line.selected.disabled {
-    stroke: mix($primary-color, black, 60%);
+    stroke: mix($primary-color, red, 40%);
   }
   .cable-line.disabled {
     stroke: mix($primary-color, black, 30%);

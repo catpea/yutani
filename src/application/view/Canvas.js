@@ -48,6 +48,11 @@ export default class Canvas extends Item {
     this.cleanup(keyboard( e=>this.application.Keyboard.doRun(e), ()=> this.application.Connectables.filter(o=>o.executable).forEach(o=>this.application.Api.run(o.id))   ));
     this.cleanup(keyboard( e=>this.application.Keyboard.doDisable(e), ()=> this.application.Selection.forEach(({id})=> { this.application.Connections.get(id).enabled = !this.application.Connections.get(id).enabled } )   ));
 
+    this.cleanup(keyboard( e=>this.application.Keyboard.moveUp(e), ()=>this.application.Api.moveUp() ));
+    this.cleanup(keyboard( e=>this.application.Keyboard.moveDown(e), ()=>this.application.Api.moveDown() ));
+    this.cleanup(keyboard( e=>this.application.Keyboard.moveLeft(e), ()=>this.application.Api.moveLeft() ));
+    this.cleanup(keyboard( e=>this.application.Keyboard.moveRight(e), ()=>this.application.Api.moveRight() ));
+
     this.cleanup(click(this.bg, ()=>this.application.Api.deselectAll() ));
   }
 

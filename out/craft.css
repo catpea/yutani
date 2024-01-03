@@ -11427,7 +11427,7 @@ fieldset:disabled .btn {
   stroke: orange;
 }
 [data-ui-theme=nostromo] .cable-line.selected.disabled {
-  stroke: #004d00;
+  stroke: #993300;
 }
 [data-ui-theme=nostromo] .cable-line.disabled {
   stroke: #002600;

@@ -23,6 +23,11 @@ export default class Application {
       isSelecting: e=>e.ctrlKey,
       doRun: e=>e.key=='Enter',
       doDisable: e=>e.key=='.',
+
+      moveUp: e=>e.key=='ArrowUp',
+      moveDown: e=>e.key=='ArrowDown',
+      moveLeft: e=>e.key=='ArrowLeft',
+      moveRight: e=>e.key=='ArrowRight',
     };
 
     this.Api          = new Api(this);

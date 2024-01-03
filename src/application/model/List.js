@@ -74,6 +74,9 @@ export default class List extends Observable {
 	has(id) {
 		return !!this.#list.find(o => o.id === id);
 	}
+	at(number) {
+		return this.#list.at(number);
+	}
 	find(callback) {
 		if(typeof callback !== "function") throw new TypeError("Needs a function.");
 		return this.#list.find(callback);

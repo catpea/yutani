@@ -5640,6 +5640,68 @@
   }
   __name(isPercentValue, "isPercentValue");
 
+  // src/application/view/canvas/node/caption/Focus.js
+  var Focus = class {
+    static {
+      __name(this, "Focus");
+    }
+    #scale;
+    // set by setter
+    // handlers
+    #mouseDownHandler;
+    #mouseUpHandler;
+    // used in stop/cleanup
+    #handle;
+    constructor({ handle, action }) {
+      this.#handle = handle;
+      this.#mouseDownHandler = (e) => {
+        action(e);
+      };
+      this.#mouseUpHandler = (e) => {
+      };
+      this.#handle.addEventListener("mousedown", this.#mouseDownHandler);
+      this.#handle.addEventListener("mouseup", this.#mouseUpHandler);
+    }
+    set scale(value) {
+      this.#scale = value;
+    }
+    stop() {
+      this.#handle.removeEventListener("mousedown", this.#mouseDownHandler);
+      this.#handle.removeEventListener("mouseup", this.#mouseUpHandler);
+    }
+  };
+
+  // src/application/view/canvas/node/caption/Selectable.js
+  var Selectable = class {
+    static {
+      __name(this, "Selectable");
+    }
+    #scale;
+    // set by setter
+    // handlers
+    #mouseDownHandler;
+    #mouseUpHandler;
+    // used in stop/cleanup
+    #handle;
+    constructor({ handle, action }) {
+      this.#handle = handle;
+      this.#mouseDownHandler = (e) => {
+        action(e);
+      };
+      this.#mouseUpHandler = (e) => {
+      };
+      this.#handle.addEventListener("mousedown", this.#mouseDownHandler);
+      this.#handle.addEventListener("mouseup", this.#mouseUpHandler);
+    }
+    set scale(value) {
+      this.#scale = value;
+    }
+    stop() {
+      this.#handle.removeEventListener("mousedown", this.#mouseDownHandler);
+      this.#handle.removeEventListener("mouseup", this.#mouseUpHandler);
+    }
+  };
+
   // src/application/view/canvas/node/Container.js
   var Container = class extends Component {
     static {
@@ -5658,6 +5720,7 @@
       this.cleanup(this.view.application.Selection.observe("changed", ({ data }) => {
         if (data.has(this.data.id)) {
           this.el.Panel.classList.add("selected");
+          front(this.group);
         } else {
           this.el.Panel.classList.remove("selected");
         }
@@ -5665,9 +5728,30 @@
       this.children.map((child) => child.setup());
     }
     render() {
+      const { Keyboard, Api: Api2 } = this.view.application;
       update2(this.group, { "transform": `translate(${this.data.x}, ${this.data.y})` });
       this.view.scene.appendChild(this.group);
       this.group.appendChild(this.el.Panel);
+      const focus = new Focus({
+        handle: this.el.Panel,
+        action: (e) => {
+          front(this.group);
+        }
+      });
+      this.cleanup(() => focus.stop());
+      const selectable = new Selectable({
+        handle: this.el.Panel,
+        action: (e) => {
+          const selectingMultiple = Keyboard.isSelecting(e);
+          if (selectingMultiple) {
+            Api2.toggleSelect(this.data);
+          } else {
+            Api2.deselectAll();
+            Api2.toggleSelect(this.data);
+          }
+        }
+      });
+      this.cleanup(() => selectable.stop());
       this.children.map((child) => child.render());
     }
     update() {
@@ -5736,68 +5820,6 @@
       this.#handle.removeEventListener("mousedown", this.#mouseDownHandler);
       this.#container.removeEventListener("mousemove", this.#mouseMoveHandler);
       this.#container.removeEventListener("mouseup", this.#mouseUpHandler);
-    }
-  };
-
-  // src/application/view/canvas/node/caption/Selectable.js
-  var Selectable = class {
-    static {
-      __name(this, "Selectable");
-    }
-    #scale;
-    // set by setter
-    // handlers
-    #mouseDownHandler;
-    #mouseUpHandler;
-    // used in stop/cleanup
-    #handle;
-    constructor({ handle, action }) {
-      this.#handle = handle;
-      this.#mouseDownHandler = (e) => {
-        action(e);
-      };
-      this.#mouseUpHandler = (e) => {
-      };
-      this.#handle.addEventListener("mousedown", this.#mouseDownHandler);
-      this.#handle.addEventListener("mouseup", this.#mouseUpHandler);
-    }
-    set scale(value) {
-      this.#scale = value;
-    }
-    stop() {
-      this.#handle.removeEventListener("mousedown", this.#mouseDownHandler);
-      this.#handle.removeEventListener("mouseup", this.#mouseUpHandler);
-    }
-  };
-
-  // src/application/view/canvas/node/caption/Focus.js
-  var Focus = class {
-    static {
-      __name(this, "Focus");
-    }
-    #scale;
-    // set by setter
-    // handlers
-    #mouseDownHandler;
-    #mouseUpHandler;
-    // used in stop/cleanup
-    #handle;
-    constructor({ handle, action }) {
-      this.#handle = handle;
-      this.#mouseDownHandler = (e) => {
-        action(e);
-      };
-      this.#mouseUpHandler = (e) => {
-      };
-      this.#handle.addEventListener("mousedown", this.#mouseDownHandler);
-      this.#handle.addEventListener("mouseup", this.#mouseUpHandler);
-    }
-    set scale(value) {
-      this.#scale = value;
-    }
-    stop() {
-      this.#handle.removeEventListener("mousedown", this.#mouseDownHandler);
-      this.#handle.removeEventListener("mouseup", this.#mouseUpHandler);
     }
   };
 
@@ -6160,6 +6182,7 @@
       }));
     }
     render() {
+      const { Keyboard, Api: Api2 } = this.view.application;
       this.group.appendChild(this.el.Editor);
       this.group.appendChild(this.el.EditorValue);
       this.cleanup(this.view.observe("transform", ({ x, y, scale }) => scale < 1 ? this.el.EditorValue.style.scale = 1 : this.el.EditorValue.style.scale = 1 / scale));
@@ -6207,6 +6230,26 @@
       this.cleanup(this.data.node.observe(this.data.port.id, (v) => {
         truncateTextWithBrowserCompatibility({ text: `${this.data.port.id}: ${v}`, width: this.width - this.bounds.space, measure: this.el.EditorValue, assign: this.el.valueText, scale: this.view.transform.scale });
       }));
+      const focus = new Focus({
+        handle: this.el.Editor,
+        action: (e) => {
+          front(this.parent.group);
+        }
+      });
+      this.cleanup(() => focus.stop());
+      const selectable = new Selectable({
+        handle: this.el.Editor,
+        action: (e) => {
+          const selectingMultiple = Keyboard.isSelecting(e);
+          if (selectingMultiple) {
+            Api2.toggleSelect(this.data.node);
+          } else {
+            Api2.deselectAll();
+            Api2.toggleSelect(this.data.node);
+          }
+        }
+      });
+      this.cleanup(() => selectable.stop());
       this.children.map((child) => child.render());
     }
     update() {
@@ -6635,6 +6678,10 @@
       this.cleanup(keyboard((e) => this.application.Keyboard.doDisable(e), () => this.application.Selection.forEach(({ id: id2 }) => {
         this.application.Connections.get(id2).enabled = !this.application.Connections.get(id2).enabled;
       })));
+      this.cleanup(keyboard((e) => this.application.Keyboard.moveUp(e), () => this.application.Api.moveUp()));
+      this.cleanup(keyboard((e) => this.application.Keyboard.moveDown(e), () => this.application.Api.moveDown()));
+      this.cleanup(keyboard((e) => this.application.Keyboard.moveLeft(e), () => this.application.Api.moveLeft()));
+      this.cleanup(keyboard((e) => this.application.Keyboard.moveRight(e), () => this.application.Api.moveRight()));
       this.cleanup(click(this.bg, () => this.application.Api.deselectAll()));
     }
     installPanZoom() {
@@ -6879,6 +6926,100 @@
       Selection2.filter((item) => item.itemClass == "Connection").forEach(({ id: id2 }) => Connections2.remove(id2));
       this.deselectAll();
     }
+    moveUp() {
+      const { Selection: Selection2, Connectables: Connectables2 } = this.application;
+      let main = Selection2.at(-1);
+      if (!main)
+        main = { reference: Connectables2.find((node) => node.executable) };
+      if (!main)
+        return;
+      this.deselectAll();
+      this.select(main.reference);
+      if (main.reference.className == "Connection") {
+        const connection = main.reference;
+        const node = Connectables2.get(connection.targetNode);
+        const socketsWithConnections = node.Input.filter((port) => port.incoming().length > 0);
+        const connectionsFromSockets = socketsWithConnections.map((socket) => socket.incoming()).flat();
+        const myIndex = connectionsFromSockets.findIndex((o) => o.id == connection.id);
+        let nextIndex = myIndex - 1;
+        if (nextIndex < 0)
+          nextIndex = connectionsFromSockets.length - 1;
+        this.deselectAll();
+        this.select(connectionsFromSockets[nextIndex]);
+      }
+    }
+    moveDown() {
+      const { Selection: Selection2, Connectables: Connectables2 } = this.application;
+      let main = Selection2.at(-1);
+      if (!main)
+        main = { reference: Connectables2.find((node) => node.executable) };
+      if (!main)
+        return;
+      this.deselectAll();
+      this.select(main.reference);
+      if (main.reference.className == "Connection") {
+        const connection = main.reference;
+        const node = Connectables2.get(connection.targetNode);
+        const socketsWithConnections = node.Input.filter((port) => port.incoming().length > 0);
+        const connectionsFromSockets = socketsWithConnections.map((socket) => socket.incoming()).flat();
+        const myIndex = connectionsFromSockets.findIndex((o) => o.id == connection.id);
+        let nextIndex = myIndex + 1;
+        if (nextIndex + 1 > connectionsFromSockets.length)
+          nextIndex = 0;
+        this.deselectAll();
+        this.select(connectionsFromSockets[nextIndex]);
+      }
+    }
+    moveLeft() {
+      const { Selection: Selection2, Connectables: Connectables2 } = this.application;
+      let main = Selection2.at(-1);
+      if (!main)
+        main = { reference: Connectables2.find((node) => node.executable) };
+      if (!main)
+        return;
+      this.deselectAll();
+      this.select(main.reference);
+      if (main.reference.className == "Connectable") {
+        const node = main.reference;
+        const socketsWithConnections = node.Input.filter((port) => port.incoming().length > 0);
+        const connectionsFromSockets = socketsWithConnections.map((socket) => socket.incoming()).flat();
+        const connection = connectionsFromSockets.at(0);
+        if (connection) {
+          this.deselectAll();
+          this.select(connection);
+        }
+      } else if (main.reference.className == "Connection") {
+        const connection = main.reference;
+        const node = Connectables2.get(connection.sourceNode);
+        this.deselectAll();
+        this.select(node);
+      }
+    }
+    moveRight() {
+      const { Selection: Selection2, Connectables: Connectables2 } = this.application;
+      let main = Selection2.at(-1);
+      if (!main)
+        main = { reference: Connectables2.find((node) => node.executable) };
+      if (!main)
+        return;
+      this.deselectAll();
+      this.select(main.reference);
+      if (main.reference.className == "Connectable") {
+        const node = main.reference;
+        const socketsWithConnections = node.Output.filter((port) => port.outgoing().length > 0);
+        const connectionsFromSockets = socketsWithConnections.map((socket) => socket.outgoing()).flat();
+        const connection = connectionsFromSockets.at(0);
+        if (connection) {
+          this.deselectAll();
+          this.select(connection);
+        }
+      } else if (main.reference.className == "Connection") {
+        const connection = main.reference;
+        const node = Connectables2.get(connection.targetNode);
+        this.deselectAll();
+        this.select(node);
+      }
+    }
     //
     //
     //
@@ -7043,6 +7184,9 @@
     has(id2) {
       return !!this.#list.find((o) => o.id === id2);
     }
+    at(number) {
+      return this.#list.at(number);
+    }
     find(callback) {
       if (typeof callback !== "function")
         throw new TypeError("Needs a function.");
@@ -7099,9 +7243,19 @@
     static {
       __name(this, "Socket");
     }
+    application;
+    parent;
+    // parent list (Sockets)
     constructor(properties, application2) {
       super();
       this.inherit(properties);
+      this.application = application2;
+    }
+    incoming() {
+      return this.application.Connections.filter((remoteConnector) => remoteConnector.targetNode == this.parent.node.id).filter((remoteConnector) => remoteConnector.targetPort == this.id);
+    }
+    outgoing() {
+      return this.application.Connections.filter((remoteConnector) => remoteConnector.sourceNode == this.parent.node.id).filter((remoteConnector) => remoteConnector.sourcePort == this.id);
     }
   };
 
@@ -7113,9 +7267,15 @@
     application = null;
     autostart = true;
     entity = Socket;
-    constructor(application2) {
+    node;
+    constructor(application2, node) {
       super();
       this.application = application2;
+      this.node = node;
+    }
+    create(item) {
+      const creation = super.create(item);
+      creation.parent = this;
     }
   };
 
@@ -7146,8 +7306,8 @@
       const methodsObject = Object.fromEntries(methods);
       const defaults = { x: 0, y: 0 };
       this.inherit({ ...defaults, ...observablesObject });
-      this.Input = new Sockets(application2);
-      this.Output = new Sockets(application2);
+      this.Input = new Sockets(application2, node);
+      this.Output = new Sockets(application2, node);
       properties.forEach(([id2]) => this.Input.create({ id: id2, type: "Input", x: 0, y: 0 }));
       methods.forEach(([id2]) => this.Output.create({ id: id2, type: "Output", x: 0, y: 0 }));
     }
@@ -7368,7 +7528,11 @@
         isDeleting: (e) => e.code == "Delete",
         isSelecting: (e) => e.ctrlKey,
         doRun: (e) => e.key == "Enter",
-        doDisable: (e) => e.key == "."
+        doDisable: (e) => e.key == ".",
+        moveUp: (e) => e.key == "ArrowUp",
+        moveDown: (e) => e.key == "ArrowDown",
+        moveLeft: (e) => e.key == "ArrowLeft",
+        moveRight: (e) => e.key == "ArrowRight"
       };
       this.Api = new Api(this);
       this.Archetypes = new Archetypes(this);
