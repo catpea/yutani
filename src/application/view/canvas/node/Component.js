@@ -60,10 +60,10 @@ export default class Component {
     + this.parent.bounds.border
     + this.parent.bounds.padding
     + this.#above.reduce((total, child) => total + (this.bounds.absolute?0:child.height) , 0)
-    + (this.parent.bounds.gap * this.#above.length)
+    + ((this.parent.bounds.gap*2) * this.#above.length)
   }
 
-  get width(){
+  get width1(){
     if(isPercentValue(this.bounds.width)) return this.siblings.reduce((max, sibling) => sibling.width>max?sibling.width:max, 0) * (parseInt(this.bounds.width)/100);
 
     return 0
@@ -74,13 +74,25 @@ export default class Component {
     + this.bounds.border
   }
 
+  get width(){
+    // if(isPercentValue(this.bounds.width)) return this.siblings.reduce((max, sibling) => sibling.width>max?sibling.width:max, 0) * (parseInt(this.bounds.width)/100);
+    if(this.isRoot) return this.bounds.width;
+
+    return 0
+    + this.parent.width
+    /* REMOVE SPACE USED BY PARENT PADDING */ -( this.parent.bounds.border + this.parent.bounds.padding )*2
+
+    // + this.bounds.border
+    // + this.bounds.padding
+  }
+
   get height(){
     return 0
     + this.bounds.border
     + this.bounds.padding
     + this.bounds.height
     + this.children.reduce((total, child) => total + (child.height), 0)
-    + (this.bounds.gap * (this.children.length>0?this.children.length-1:0 /* not counting gap in last child as it does not have one*/))
+    + ((this.bounds.gap*2) * (this.children.length>0?this.children.length-1:0 /* not counting gap in last child as it does not have one*/))
     + this.bounds.padding
     + this.bounds.border
   }
