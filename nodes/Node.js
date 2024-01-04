@@ -7,6 +7,7 @@ export default class Node {
 
   x = 123;
   y = 345;
+  width = null;
 
   input = "";
 

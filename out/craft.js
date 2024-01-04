@@ -5240,6 +5240,7 @@
     type = "Node";
     x = 123;
     y = 345;
+    width = null;
     input = "";
     executable = false;
     schema = null;
@@ -5295,6 +5296,7 @@
     static {
       __name(this, "Text");
     }
+    width = 333;
     text = "";
     output() {
       return this.text;
@@ -5573,15 +5575,25 @@
     get y() {
       if (this.isRoot)
         return 0;
-      return 0 + this.parent.y + this.parent.bounds.border + this.parent.bounds.padding + this.#above.reduce((total, child) => total + (this.bounds.absolute ? 0 : child.height), 0) + this.parent.bounds.gap * this.#above.length;
+      return 0 + this.parent.y + this.parent.bounds.border + this.parent.bounds.padding + this.#above.reduce((total, child) => total + (this.bounds.absolute ? 0 : child.height), 0) + this.parent.bounds.gap * 2 * this.#above.length;
     }
+    // get width1(){
+    //   if(isPercentValue(this.bounds.width)) return this.siblings.reduce((max, sibling) => sibling.width>max?sibling.width:max, 0) * (parseInt(this.bounds.width)/100);
+    //
+    //   return 0
+    //   + this.bounds.border
+    //   + this.bounds.padding
+    //   + ( this.bounds.width || this.children.reduce((max, child) => child.width>max?child.width:max, 0) )
+    //   + this.bounds.padding
+    //   + this.bounds.border
+    // }
     get width() {
-      if (isPercentValue(this.bounds.width))
-        return this.siblings.reduce((max, sibling) => sibling.width > max ? sibling.width : max, 0) * (parseInt(this.bounds.width) / 100);
-      return 0 + this.bounds.border + this.bounds.padding + (this.bounds.width || this.children.reduce((max, child) => child.width > max ? child.width : max, 0)) + this.bounds.padding + this.bounds.border;
+      if (this.isRoot)
+        return this.bounds.width;
+      return 0 + this.parent.width - (this.parent.bounds.border + this.parent.bounds.padding) * 2;
     }
     get height() {
-      return 0 + this.bounds.border + this.bounds.padding + this.bounds.height + this.children.reduce((total, child) => total + child.height, 0) + this.bounds.gap * (this.children.length > 0 ? this.children.length - 1 : 0) + this.bounds.padding + this.bounds.border;
+      return 0 + this.bounds.border + this.bounds.padding + this.bounds.height + this.children.reduce((total, child) => total + child.height, 0) + this.bounds.gap * 2 * (this.children.length > 0 ? this.children.length - 1 : 0) + this.bounds.padding + this.bounds.border;
     }
     get radius() {
       return this.bounds.radius;
@@ -5632,13 +5644,6 @@
       this.#cleanup.map((x) => x());
     }
   };
-  function isPercentValue(input) {
-    let output = false;
-    if (typeof input == "string" && input.endsWith("%"))
-      output = true;
-    return output;
-  }
-  __name(isPercentValue, "isPercentValue");
 
   // src/application/view/canvas/node/caption/Focus.js
   var Focus = class {
@@ -6263,19 +6268,19 @@
     }
     start({ item, view }) {
       const container = new Container(`container`);
-      container.setBounds({ border: 1, gap: 5, radius: 5, padding: 2 });
+      container.setBounds({ border: 1, gap: 1, radius: 5, padding: 0, width: item.width || 256 });
       container.setView(view);
       container.setData(item);
       this.cleanup(item.observe("x", (v) => update2(container.group, { "transform": `translate(${v},${item.y})` })));
       this.cleanup(item.observe("y", (v) => update2(container.group, { "transform": `translate(${item.x},${v})` })));
       const caption = new Caption(`caption`);
-      caption.setBounds({ border: 1, height: 32, width: "100%", radius: 3, margin: 4 });
+      caption.setBounds({ border: 0, height: 32, radius: 3 });
       container.add(caption);
       const inputPod = new Pod(`inputPod`);
-      inputPod.setBounds({ gap: 2, padding: 1, border: 1, radius: 3 });
+      inputPod.setBounds({ gap: 1, padding: 0, border: 1, radius: 3 });
       container.add(inputPod);
       const outputPod = new Pod(`outputPod`);
-      outputPod.setBounds({ gap: 2, padding: 1, border: 1, radius: 3 });
+      outputPod.setBounds({ gap: 1, padding: 0, border: 1, radius: 3 });
       container.add(outputPod);
       item.Output.forEach((portObject, index) => {
         const row = new Row(`row{index}`);
@@ -6283,7 +6288,7 @@
         row.setData(portObject);
         outputPod.add(row);
         const port = new Port(`port{index}`);
-        port.setBounds({ width: 200, height: 20, space: 4, radius: 7 });
+        port.setBounds({ height: 24, space: 4, radius: 7 });
         port.setData({ node: item, port: portObject });
         row.add(port);
       });
@@ -6298,7 +6303,7 @@
         port.setData({ node: item, port: portObject });
         row.add(port);
         const editor = new Editor(`editor{index}`);
-        editor.setBounds({ space: 10, width: 200, height: 20 });
+        editor.setBounds({ space: 10, height: 24 });
         editor.setData({ node: item, port: portObject });
         port.add(editor);
       });

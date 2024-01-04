@@ -63,16 +63,16 @@ export default class Component {
     + ((this.parent.bounds.gap*2) * this.#above.length)
   }
 
-  get width1(){
-    if(isPercentValue(this.bounds.width)) return this.siblings.reduce((max, sibling) => sibling.width>max?sibling.width:max, 0) * (parseInt(this.bounds.width)/100);
-
-    return 0
-    + this.bounds.border
-    + this.bounds.padding
-    + ( this.bounds.width || this.children.reduce((max, child) => child.width>max?child.width:max, 0) )
-    + this.bounds.padding
-    + this.bounds.border
-  }
+  // get width1(){
+  //   if(isPercentValue(this.bounds.width)) return this.siblings.reduce((max, sibling) => sibling.width>max?sibling.width:max, 0) * (parseInt(this.bounds.width)/100);
+  //
+  //   return 0
+  //   + this.bounds.border
+  //   + this.bounds.padding
+  //   + ( this.bounds.width || this.children.reduce((max, child) => child.width>max?child.width:max, 0) )
+  //   + this.bounds.padding
+  //   + this.bounds.border
+  // }
 
   get width(){
     // if(isPercentValue(this.bounds.width)) return this.siblings.reduce((max, sibling) => sibling.width>max?sibling.width:max, 0) * (parseInt(this.bounds.width)/100);
