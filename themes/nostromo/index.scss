@@ -5,18 +5,18 @@ $darkest: hsl(60, 100%, 1%);
 // -------------------
 
 $primary-color: green;
-$primary-background: black;
+$primary-background: rgba(0,0,0,0.5);
 $primary-border: $primary-color;
 
 $selected-color: orange;
-$selected-background: black;
+$selected-background: rgba(0,0,0,0.5);
 $selected-border: $selected-color;
 
 [data-ui-theme=nostromo] {
 
   svg.editor-interface {
     outline: none;
-    background-color: black;
+    background-color: rgba(0,0,0,0.5);
   }
 
   .interface-background {
@@ -26,13 +26,18 @@ $selected-border: $selected-color;
 
   // Node is the main thing that contains caption ports, etc..
 
+  .node-box {
+    fill: $primary-background;
+    stroke: $primary-border;
+  }
+
   .node-container {
     fill: $primary-background;
     stroke: $primary-border;
   }
 
   .node-container.selected {
-    fill: black;
+    fill: rgba(0,0,0,0.5);
     stroke: $selected-border;
   }
 
@@ -169,7 +174,7 @@ $selected-border: $selected-color;
     stroke: mix($primary-color, red, 40%);
   }
   .cable-line.disabled {
-    stroke: mix($primary-color, black, 30%);
+    stroke: mix($primary-color, rgba(0,0,0,0.5), 30%);
   }
   .cable-line-indicator {
     stroke: $selected-color;
@@ -202,7 +207,7 @@ $selected-border: $selected-color;
 
 
 
-  // 
+  //
   // .node-caption {
   //   stroke: magenta;
   // }

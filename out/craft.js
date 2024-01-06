@@ -5272,6 +5272,7 @@
     style = "HD";
     version = 6;
     aspectRatio = "1:1";
+    gork = 1;
     schema = {
       type: "object",
       properties: {
@@ -6649,6 +6650,567 @@
     // start
   };
 
+  // src/application/view/canvas/Display.js
+  var import_oneof2 = __toESM(require_oneof(), 1);
+
+  // src/application/view/canvas/display/Observable.js
+  var Observable2 = class {
+    static {
+      __name(this, "Observable");
+    }
+    #cleanup = [];
+    cleanup(...arg) {
+      this.#cleanup.push(...arg);
+    }
+    // Reactive Properties
+    #properties = {};
+    inherit(payload) {
+      Object.entries(payload).forEach(([key, val]) => this.declare(key, val));
+    }
+    declare(key, val) {
+      this.#properties[key] = val;
+      Object.defineProperty(this, key, {
+        get: () => this.#properties[key],
+        set: (newValue) => {
+          const debug = ["height"];
+          if (debug.includes(key))
+            console.log(`${this.name}: SET ${key} to "${newValue}"`);
+          const oldValue = this.#properties[key];
+          if (newValue === oldValue)
+            return;
+          this.#properties[key] = newValue;
+          this.notify(key, newValue, { newValue, oldValue });
+        }
+      });
+    }
+    dump() {
+      console.log(this.#properties);
+      return this.#properties;
+    }
+    // Observable Values
+    #observers = {};
+    // USER API
+    derived(observerCallback, eventNames) {
+      const destroy = [];
+      for (const eventName of eventNames) {
+        destroy.push(
+          this.observe(eventName, () => observerCallback(eventNames.map((key) => this.#properties[key])), { autorun: false })
+        );
+      }
+      return () => {
+        destroy.forEach((o) => o());
+      };
+    }
+    observe(eventName, observerCallback, options = { autorun: true }) {
+      if (options.autorun) {
+        const isReactiveProperty = this.#properties.hasOwnProperty(eventName);
+        if (isReactiveProperty) {
+          observerCallback(this.#properties[eventName]);
+        } else {
+          observerCallback({ data: this });
+        }
+      }
+      return this.#subscribe(eventName, observerCallback);
+    }
+    // DEVELOPER API
+    //NOTE: must be MANUALLY issued anytime something changes
+    notify(eventName, eventData, ...extra) {
+      if (Array.isArray(this.#observers[eventName]))
+        this.#observers[eventName].forEach((observerCallback) => observerCallback(eventData, ...extra));
+    }
+    // INTERNAL API
+    #subscribe(eventName, observerCallback) {
+      if (typeof observerCallback !== "function")
+        throw new TypeError("Observer must be a function.");
+      if (!Array.isArray(this.#observers[eventName]))
+        this.#observers[eventName] = [];
+      this.#observers[eventName].push(observerCallback);
+      return () => {
+        this.#unsubscribe(eventName, observerCallback);
+      };
+    }
+    #unsubscribe(eventName, observerCallback) {
+      this.#observers[eventName] = this.#observers[eventName].filter((obs) => obs !== observerCallback);
+    }
+  };
+
+  // src/application/view/canvas/display/Component.js
+  var Component2 = class extends Observable2 {
+    static {
+      __name(this, "Component");
+    }
+    g;
+    el = {};
+    root;
+    container;
+    data = {};
+    bounds = {
+      x: 0,
+      y: 0,
+      width: 0,
+      height: 1,
+      gap: 0,
+      border: 0,
+      padding: 0,
+      radius: 0,
+      space: 0,
+      color: ""
+    };
+    constructor() {
+      super();
+      this.declare("height", this.bounds.height);
+      this.declare("y", this.bounds.y);
+    }
+    calculateWidth() {
+      return;
+    }
+    calculateHeight() {
+      return;
+    }
+    calculateX() {
+      return;
+    }
+    calculateY() {
+      return;
+    }
+    #cleanup = [];
+    cleanup(...arg) {
+      this.#cleanup.push(...arg);
+    }
+    start() {
+    }
+    stop() {
+    }
+    setBounds(data) {
+      for (const name in this.bounds) {
+        if (data[name])
+          this.bounds[name] = data[name];
+      }
+      return this;
+    }
+    setData(data) {
+      this.data = data;
+      return this;
+    }
+  };
+
+  // src/application/view/canvas/display/Control.js
+  var Control = class extends Component2 {
+    static {
+      __name(this, "Control");
+    }
+    get above() {
+      const selfIndex = this.container.getChildren().indexOf(this);
+      return this.container.getChildren().slice(0, selfIndex);
+    }
+    get x() {
+      return 0 + this.container.x + this.container.bounds.border + this.container.bounds.padding;
+    }
+    calculateY() {
+      console.log(`YccccCALC: ${this.name} ABOVE`, this.above.map((o) => o.name), this.above.reduce((total, child) => total + (this.bounds.absolute ? 0 : child.height), 0));
+      return 0 + this.container.y + this.container.bounds.border + this.container.bounds.padding + this.above.reduce((total, child) => total + (this.bounds.absolute ? 0 : child.height), 0) + this.container.bounds.gap * 2 * this.above.length;
+    }
+    get width() {
+      if (this.bounds.width)
+        return this.bounds.width;
+      return 0 + this.container.width - (this.container.bounds.border + this.container.bounds.padding) * 2;
+    }
+    stop() {
+      this.removeElements();
+    }
+    removeElements() {
+      Object.values(this.el).forEach((el) => el.remove());
+    }
+  };
+
+  // src/application/view/canvas/display/List.js
+  var List = class extends Observable2 {
+    static {
+      __name(this, "List");
+    }
+    #list = [];
+    addAll(...argv) {
+      this.add(...argv);
+    }
+    add(...items) {
+      for (const item of items) {
+        if (!(Container2.prototype.isPrototypeOf(item) || Control.prototype.isPrototypeOf(item)))
+          throw new Error(`Must be a Container or Control.`);
+        this.#list.push(item);
+        this.notify("created", item);
+        this.notify("changed", this);
+      }
+    }
+    [Symbol.iterator]() {
+      return this.#list[Symbol.iterator]();
+    }
+    find(callback) {
+      if (typeof callback !== "function")
+        throw new TypeError("Needs a function.");
+      return this.#list.find(callback);
+    }
+    map(callback) {
+      if (typeof callback !== "function")
+        throw new TypeError("Needs a function.");
+      return this.#list.map(callback);
+    }
+    reduce(callback, initialValue) {
+      if (typeof callback !== "function")
+        throw new TypeError("Needs a function.");
+      return this.#list.reduce(callback, initialValue);
+    }
+    filter(callback) {
+      if (typeof callback !== "function")
+        throw new TypeError("Needs a function.");
+      return this.#list.filter(callback);
+    }
+    forEach(callback) {
+      if (typeof callback !== "function")
+        throw new TypeError("Needs a function.");
+      return this.#list.forEach(callback);
+    }
+    indexOf(item) {
+      return this.#list.indexOf(item);
+    }
+    slice(...argv) {
+      return this.#list.slice(...argv);
+    }
+    get length() {
+      return this.#list.length;
+    }
+    get raw() {
+      return this.#list;
+    }
+    //
+    // application = null;
+    // autostart = true;
+    // entity = null;
+    //
+    // create(data, options = {}) {
+    //
+    // 	// entity can be provided during object creation
+    // 	const Entity = options.entity || this.entity;
+    // 	const item = new Entity(data, this.application);
+    //
+    // 	if(!item.id) throw new Error('Item requires an .id')
+    //
+    // 	const itemExists = this.#list.find((o) => o.id === item.id);
+    // 	if(itemExists) throw new Error('Item Exists, duplicate id is not allowed an maybe an indication of a problem in your code.')
+    //
+    // 	this.#list.push(item);
+    //
+    // 	if(this.autostart && item.start) item.start();
+    //
+    // 	this.notify("created", { item });
+    // 	this.notify("changed", { data: this, item });
+    //
+    // 	return item;
+    // }
+    //
+    // remove(input) {
+    //
+    // 	let filter = (item) => item.id === input;
+    // 	if(typeof input == 'function') filter = input;
+    //
+    //
+    //
+    // 	const matching = this.#list.filter(filter);
+    //
+    // 	matching.forEach(item => {
+    // 		if(item) {
+    // 			if(item.stop) item.stop();
+    // 			this.#list = this.#list.filter(o => o.id !== item.id);
+    // 			this.notify("removed", { item });
+    // 			this.notify("changed", { item, data: this });
+    // 		} else {
+    // 			console.warning('ITEM NOT FOUND', id);
+    // 		}
+    // 	});
+    // }
+    //
+    // // life cycle
+    //
+    // start(autostart = true) {
+    // 	this.autostart = autostart; // start all from now on
+    // 	this.#list.filter(item => item.start).forEach(item => item.start());
+    // }
+    //
+    // stop(autostart = false) {
+    // 	this.autostart = autostart; // do not autostart
+    // 	this.#list.filter(item => item.stop).forEach(item => item.stop());
+    // }
+    //
+    //
+    // // READ
+    //
+    // [Symbol.iterator]() {
+    // 	return this.#list[Symbol.iterator]();
+    // }
+    //
+    // get(id) {
+    // 	return this.#list.find(o => o.id === id);
+    // }
+    // has(id) {
+    // 	return !!this.#list.find(o => o.id === id);
+    // }
+    // at(number) {
+    // 	return this.#list.at(number);
+    // }
+    // find(callback) {
+    // 	if(typeof callback !== "function") throw new TypeError("Needs a function.");
+    // 	return this.#list.find(callback);
+    // }
+    // filter(callback) {
+    // 	if(typeof callback !== "function") throw new TypeError("Needs a function.");
+    // 	return this.#list.filter(callback);
+    // }
+    // forEach(callback) {
+    // 	if(typeof callback !== "function") throw new TypeError("Needs a function.");
+    // 	return this.#list.forEach(callback);
+    // }
+    //
+    //
+    // size() {
+    // 	return this.#list.length;
+    // }
+    // dump() {
+    // 	for(const variable of this.#list) {
+    // 		console.log(variable.dump());
+    // 	}
+    // 	return this.#list.length;
+    // }
+  };
+
+  // src/application/view/canvas/display/Container.js
+  var Container2 = class extends Component2 {
+    static {
+      __name(this, "Container");
+    }
+    root;
+    g = svg.g();
+    name = "";
+    #children = new List();
+    constructor(name) {
+      super();
+      this.name = name;
+      if (!this.root)
+        this.root = this;
+      this.cleanup(this.getChildren().observe("created", (item) => {
+        item.root = this.root;
+        item.container = this;
+        item.g = this.g;
+        this.cleanup(item.observe("height", (x) => this.height = this.calculateHeight()));
+        item.start();
+        console.info(`${this.name} has ${this.getChildren().length} ${this.getChildren().length == 1 ? "child" : "children"} now`, this.getChildren().raw);
+        console.info(`${this.name}`, this.height, this.getChildren().raw);
+      }, { autorun: false }));
+    }
+    createElements() {
+      this.el.Container = svg.rect({
+        name: this.name,
+        class: "node-box",
+        ry: this.bounds.radius,
+        width: this.width,
+        height: this.height,
+        // 'stroke-width': 2,
+        // stroke: this.bounds.color,
+        x: this.x,
+        y: this.y
+      });
+      console.log(this.name, {
+        x: this.x,
+        y: this.y
+      });
+    }
+    appendElements() {
+      this.g.appendChild(this.el.Container);
+    }
+    updateElements() {
+      this.observe("height", (height) => update2(this.el.Container, { height }));
+      this.observe("y", (y) => update2(this.el.Container, { y }));
+    }
+    removeElements() {
+      Object.values(this.el).forEach((el) => el.remove());
+    }
+    start() {
+      this.createElements();
+      this.updateElements();
+      this.appendElements();
+      this.root.observe("height", (height) => {
+        this.y = this.calculateY();
+      });
+    }
+    stop() {
+      this.removeElements();
+    }
+    getChildren() {
+      return this.#children;
+    }
+    get aboveAll() {
+      if (!this.container)
+        return [];
+      const selfIndex = this.container.getChildren().indexOf(this);
+      const response = [...this.container.aboveAll, ...this.container.getChildren().slice(0, selfIndex)];
+      return response;
+    }
+    get above() {
+      const selfIndex = this.container.getChildren().indexOf(this);
+      const response = this.container.getChildren().slice(0, selfIndex);
+      return response;
+    }
+  };
+
+  // src/application/view/canvas/display/VBox.js
+  var VBox = class extends Container2 {
+    static {
+      __name(this, "VBox");
+    }
+    constructor(...arg) {
+      super(...arg);
+      this.height = this.calculateHeight();
+    }
+    get x() {
+      const isRoot = this.root === this;
+      const isNested = this.container;
+      if (isRoot) {
+        return this.data.x;
+      } else if (isNested) {
+        return 0 + this.container.x + this.container.bounds.border + this.container.bounds.padding;
+      }
+    }
+    calculateY() {
+      const isRoot = this.root === this;
+      const isNested = this.container;
+      if (isRoot) {
+        return this.bounds.y;
+      } else if (isNested) {
+        console.log(`YCALC: ${this.name} ABOVE`, this.aboveAll.map((o) => o.name), this.above.reduce((total, child) => total + (this.bounds.absolute ? 0 : child.height), 0));
+        const response = this.container.y + this.container.bounds.border + this.container.bounds.padding + this.above.reduce((total, child) => total + (this.bounds.absolute ? 0 : child.height), 0) + this.container.bounds.gap * 2 * this.above.length;
+        return response;
+      }
+    }
+    get width() {
+      const isRoot = this.root === this;
+      const isNested = this.container;
+      if (isRoot) {
+        return this.bounds.width;
+      } else if (isNested) {
+        return 0 + this.container.width - (this.container.bounds.border + this.container.bounds.padding) * 2;
+      }
+    }
+    calculateHeight() {
+      return +this.bounds.border + this.bounds.padding + this.bounds.height + this.getChildren().reduce((total, child) => total + child.height, 0) + this.bounds.gap * 2 * (this.getChildren().length > 0 ? this.getChildren().length - 1 : 0) + this.bounds.padding + this.bounds.border;
+    }
+  };
+
+  // src/application/view/canvas/display/HBox.js
+  var HBox = class extends Container2 {
+    static {
+      __name(this, "HBox");
+    }
+    constructor(...arg) {
+      super(...arg);
+      this.height = this.calculateHeight();
+    }
+    get x() {
+      const isRoot = this.root === this;
+      const isNested = this.container;
+      if (isRoot) {
+        return this.data.x;
+      } else if (isNested) {
+        return 0 + this.container.x + this.container.bounds.border + this.container.bounds.padding;
+      }
+    }
+    calculateY() {
+      const isRoot = this.root === this;
+      const isNested = this.container;
+      if (isRoot) {
+        return this.bounds.y;
+      } else if (isNested) {
+        console.log(`YCALC: ${this.name} ABOVE`, this.aboveAll.map((o) => o.name), this.above.reduce((total, child) => total + (this.bounds.absolute ? 0 : child.height), 0));
+        const response = this.container.y + this.container.bounds.border + this.container.bounds.padding + this.above.reduce((total, child) => total + (this.bounds.absolute ? 0 : child.height), 0) + this.container.bounds.gap * 2 * this.above.length;
+        return response;
+      }
+    }
+    get width() {
+      const isRoot = this.root === this;
+      const isNested = this.container;
+      if (isRoot) {
+        return this.bounds.width;
+      } else if (isNested) {
+        return 0 + this.container.width - (this.container.bounds.border + this.container.bounds.padding) * 2;
+      }
+    }
+    calculateHeight() {
+      return +this.bounds.border + this.bounds.padding + this.bounds.height + this.getChildren().reduce((total, child) => total + child.height, 0) + this.bounds.gap * 2 * (this.getChildren().length > 0 ? this.getChildren().length - 1 : 0) + this.bounds.padding + this.bounds.border;
+    }
+  };
+
+  // src/application/view/canvas/display/Button.js
+  var Button = class extends Control {
+    static {
+      __name(this, "Button");
+    }
+    text = "";
+    constructor(text2) {
+      super();
+      this.text = text2;
+      this.height = 32;
+    }
+    createElements() {
+      console.log("label", this.above);
+      this.el.Caption = svg.rect({ class: `node-captiond`, fill: "#2c434a", ry: this.bounds.radius, width: this.width, x: this.x, y: this.y, height: this.height });
+      this.el.CaptionText = svg.text({ class: `node-caption caption-text node-text`, style: "pointer-events: none; user-select: none;", x: this.x + this.width * 0.02 }, this.text);
+    }
+    updateElements() {
+      this.observe("y", (y) => update2(this.el.Caption, { y }));
+      this.observe("y", (y) => update2(this.el.CaptionText, { y: y + (this.height - this.height * 0.12) }));
+    }
+    appendElements() {
+      this.g.appendChild(this.el.Caption);
+      this.g.appendChild(this.el.CaptionText);
+    }
+    start() {
+      this.createElements();
+      this.updateElements();
+      this.appendElements();
+      this.root.observe("height", (height) => {
+        console.log("Height changed");
+        this.y = this.calculateY();
+      });
+    }
+  };
+
+  // src/application/view/canvas/Display.js
+  var Display = class extends Base {
+    static {
+      __name(this, "Display");
+    }
+    start({ item, view }) {
+      const container = new VBox("MainContainer");
+      container.setBounds({ color: "pink", radius: item.radius, x: item.x, y: item.y, width: item.width, fheight: item.height, border: 1, padding: 10, gap: 1 });
+      container.setData(item);
+      container.start();
+      view.add(container);
+      const box1 = new VBox("Box1");
+      box1.setBounds({ color: "red", radius: item.radius, border: 1, padding: 10, gap: 1 });
+      container.getChildren().addAll(box1);
+      box1.getChildren().addAll(new Button("HBox Tests"));
+      const hbox1 = new HBox("Box1");
+      hbox1.setBounds({ color: "red", radius: item.radius, border: 1, padding: 10, gap: 1 });
+      container.getChildren().addAll(hbox1);
+      const a = new Button("This should be on the left");
+      a.setBounds({ width: 64 });
+      const b = new Button("on right");
+      b.setBounds({ width: 64 });
+      hbox1.getChildren().addAll(a);
+      hbox1.getChildren().addAll(b);
+      return;
+      view.add(container);
+      console.log(item, container.g);
+    }
+  };
+
   // src/application/view/Canvas.js
   var Canvas = class extends Item {
     static {
@@ -6723,9 +7285,9 @@
       this.application.Connections.observe("removed", (v) => this.disposeConnection(v), { autorun: false });
     }
     displayConnectable({ item }) {
-      const types = [Node3, Junction2];
-      const Component2 = types.find((o) => o.name == item.type);
-      const connectable = new Component2();
+      const types = [Node3, Junction2, Display];
+      const Component3 = types.find((o) => o.name == item.type);
+      const connectable = new Component3();
       this.renderers.set(item.id, connectable);
       connectable.start({ item, view: this });
     }
@@ -6734,13 +7296,29 @@
     }
     displayConnection({ item }) {
       const types = [Connection];
-      const Component2 = types.find((o) => o.name == item.type);
-      const connectable = new Component2();
+      const Component3 = types.find((o) => o.name == item.type);
+      const connectable = new Component3();
       this.renderers.set(item.id, connectable);
       connectable.start({ item, view: this });
     }
     disposeConnection({ item }) {
       this.renderers.get(item.id).stop();
+    }
+    add(component) {
+      this.scene.appendChild(component.g);
+    }
+  };
+
+  // nodes/Message.js
+  var Message = class extends Node2 {
+    static {
+      __name(this, "Message");
+    }
+    type = "Display";
+    text = "Hello World";
+    input = [];
+    output() {
+      return this.input;
     }
   };
 
@@ -6781,6 +7359,7 @@
     application2.Archetypes.create({ id: "Output", class: Output });
     application2.Archetypes.create({ id: "Text", class: Text });
     application2.Archetypes.create({ id: "Midjourney", class: Midjourney });
+    application2.Archetypes.create({ id: "Message", class: Message });
     application2.Views.create({ id: "view-1", selector: "#signalcraft-view-1" }, { entity: Canvas });
     application2.Themes.create({}, { entity: Nostromo });
     application2.Themes.create({}, { entity: Obsidian });
@@ -6818,11 +7397,19 @@
     outputNode.id = "outputNode";
     outputNode.x = 700;
     outputNode.y = 100;
+    const msg1 = new Message();
+    msg1.id = "msg1";
+    msg1.radius = 0;
+    msg1.width = 333;
+    msg1.height = 333;
+    msg1.x = 400;
+    msg1.y = 500;
     api.add(somePrompt);
     api.add(highresPrompt1);
     api.add(highresPrompt2);
     api.add(highresPrompt3);
     api.add(midjourneyPrompt);
+    api.add(msg1);
     api.add(outputNode);
     api.connect(somePrompt.id, "output", midjourneyPrompt.id, "prompt");
     api.connect(highresPrompt1.id, "output", midjourneyPrompt.id, "style");
@@ -7130,7 +7717,7 @@
   };
 
   // src/application/model/List.js
-  var List = class extends Observable {
+  var List2 = class extends Observable {
     static {
       __name(this, "List");
     }
@@ -7230,7 +7817,7 @@
   };
 
   // src/application/model/Archetypes.js
-  var Archetypes = class extends List {
+  var Archetypes = class extends List2 {
     static {
       __name(this, "Archetypes");
     }
@@ -7265,7 +7852,7 @@
   };
 
   // src/application/model/Sockets.js
-  var Sockets = class extends List {
+  var Sockets = class extends List2 {
     static {
       __name(this, "Sockets");
     }
@@ -7319,7 +7906,7 @@
   };
 
   // src/application/model/Connectables.js
-  var Connectables = class extends List {
+  var Connectables = class extends List2 {
     static {
       __name(this, "Connectables");
     }
@@ -7347,7 +7934,7 @@
   };
 
   // src/application/model/Connections.js
-  var Connections = class extends List {
+  var Connections = class extends List2 {
     static {
       __name(this, "Connections");
     }
@@ -7372,7 +7959,7 @@
   };
 
   // src/application/model/Selection.js
-  var Selection = class extends List {
+  var Selection = class extends List2 {
     static {
       __name(this, "Selection");
     }
@@ -7386,7 +7973,7 @@
   };
 
   // src/application/model/Views.js
-  var Views = class extends List {
+  var Views = class extends List2 {
     static {
       __name(this, "Views");
     }
@@ -7399,7 +7986,7 @@
   };
 
   // src/application/model/Themes.js
-  var Views2 = class extends List {
+  var Views2 = class extends List2 {
     static {
       __name(this, "Views");
     }

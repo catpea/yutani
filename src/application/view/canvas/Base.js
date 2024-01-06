@@ -9,7 +9,6 @@ export default class Base {
   }
 
   start ({item, view}){
-
   }
 
   stop (){

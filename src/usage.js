@@ -1,6 +1,7 @@
 import Output from '../nodes/Output.js'
 import Text from '../nodes/Text.js'
 import Midjourney from '../nodes/Midjourney.js'
+import Message from '../nodes/Message.js'
 
 export default async function(api){
 
@@ -38,6 +39,14 @@ export default async function(api){
   outputNode.x = 700;
   outputNode.y = 100;
 
+  const msg1 = new Message();
+  msg1.id = 'msg1';
+  msg1.radius = 0;
+  msg1.width = 333;
+  msg1.height = 333;
+  msg1.x = 400;
+  msg1.y = 500;
+
   // setup relationships ---------------------------------------------------------------------------------------------------------------
 
   api.add(somePrompt);
@@ -45,6 +54,8 @@ export default async function(api){
   api.add(highresPrompt2);
   api.add(highresPrompt3);
   api.add(midjourneyPrompt);
+  api.add(msg1);
+
   api.add(outputNode);
 
   api.connect(somePrompt.id, 'output',         midjourneyPrompt.id, 'prompt');

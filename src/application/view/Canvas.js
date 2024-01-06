@@ -9,6 +9,8 @@ import Node from './canvas/Node.js';
 import Junction from './canvas/Junction.js';
 import Connection from './canvas/Connection.js';
 
+import Display from './canvas/Display.js';
+
 export default class Canvas extends Item {
 
   application;
@@ -95,7 +97,7 @@ export default class Canvas extends Item {
   }
 
 	displayConnectable({ item }) {
-    const types = [Node, Junction]; //NOTE: multiple component classes are supported, and new ones should be added
+    const types = [Node, Junction,  Display]; //NOTE: multiple component classes are supported, and new ones should be added
     const Component = types.find(o=>o.name==item.type);
 		const connectable = new Component();
 		this.renderers.set(item.id, connectable);
@@ -115,5 +117,10 @@ export default class Canvas extends Item {
   disposeConnection({ item }) {
 		this.renderers.get(item.id).stop();
 	}
+
+
+  add(component){
+    this.scene.appendChild( component.g );
+  }
 
 }

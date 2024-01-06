@@ -6,6 +6,7 @@ export default class Midjourney extends Node {
 	style = 'HD';
 	version = 6;
 	aspectRatio = '1:1';
+	gork = 1;
 
 	schema = {
 		type: "object",

@@ -3,6 +3,8 @@ import Midjourney from '#nodes/Midjourney.js';
 import Text from '#nodes/Text.js';
 import Canvas from './application/view/Canvas.js';
 
+import Message from '#nodes/Message.js';
+
 import Nostromo from '#themes/nostromo/index.js';
 import Obsidian from '#themes/obsidian/index.js';
 
@@ -13,6 +15,8 @@ export default function(application) {
 	application.Archetypes.create({id:'Text', class:Text});
 	application.Archetypes.create({id:'Midjourney', class:Midjourney});
 
+	application.Archetypes.create({id:'Message', class:Message});
+	
 	application.Views.create({id:'view-1', selector:'#signalcraft-view-1'}, {entity:Canvas});
 
 	application.Themes.create({}, {entity:Nostromo});

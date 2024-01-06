@@ -11354,18 +11354,22 @@ fieldset:disabled .btn {
 /* themes/nostromo/index.scss */
 [data-ui-theme=nostromo] svg.editor-interface {
   outline: none;
-  background-color: black;
+  background-color: rgba(0, 0, 0, 0.5);
 }
 [data-ui-theme=nostromo] .interface-background {
   fill: hsl(60, 100%, 1%);
   stroke: green;
 }
+[data-ui-theme=nostromo] .node-box {
+  fill: rgba(0, 0, 0, 0.5);
+  stroke: green;
+}
 [data-ui-theme=nostromo] .node-container {
-  fill: black;
+  fill: rgba(0, 0, 0, 0.5);
   stroke: green;
 }
 [data-ui-theme=nostromo] .node-container.selected {
-  fill: black;
+  fill: rgba(0, 0, 0, 0.5);
   stroke: orange;
 }
 [data-ui-theme=nostromo] .node-caption {
@@ -11430,7 +11434,7 @@ fieldset:disabled .btn {
   stroke: #993300;
 }
 [data-ui-theme=nostromo] .cable-line.disabled {
-  stroke: #002600;
+  stroke: rgba(0, 72, 0, 0.65);
 }
 [data-ui-theme=nostromo] .cable-line-indicator {
   stroke: orange;
