@@ -5,6 +5,11 @@ export default class VBox extends Container {
 	constructor(...arg) {
 		super(...arg);
 		this.height = this.calculateHeight();
+
+		console.error('ADD LAYOUT MANGER SUPPORT HERE')
+
+		// parent.layoutManager.register(this);
+
 	}
 
 	get x() {

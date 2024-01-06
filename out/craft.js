@@ -7068,6 +7068,7 @@
     constructor(...arg) {
       super(...arg);
       this.height = this.calculateHeight();
+      console.error("ADD LAYOUT MANGER SUPPORT HERE");
     }
     get x() {
       const isRoot = this.root === this;
