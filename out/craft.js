@@ -6838,7 +6838,7 @@
     static {
       __name(this, "Component");
     }
-    debug = true;
+    DEBUG = false;
     g;
     // svg group node to contain everything
     el = {};
@@ -6857,7 +6857,7 @@
       this.declare("y", 0);
       this.declare("w", 320);
       this.declare("h", 200);
-      if (this.debug)
+      if (this.DEBUG)
         this.design.color = "magenta";
     }
     // STATE ENCAPSULATION
@@ -7207,7 +7207,8 @@
         x: this.x,
         y: this.y
       });
-      this.el.CaptionText = svg.text({ fill: this.design.color, x: this.x, y: this.y }, this.name);
+      if (this.DEBUG)
+        this.el.CaptionText = svg.text({ fill: this.design.color, x: this.x, y: this.y }, this.name);
     }
     updateElements() {
       this.observe("w", (width) => update2(this.el.Container, { width }), { autorun: false });
@@ -7355,7 +7356,6 @@
     }
     start() {
       this.container = new Container2(this.title, this.design);
-      console.log("this.design", this.container.design);
       this.container.data = this.data;
       this.container.view = this.view;
       this.container.layout = new VerticalLayout();
@@ -7364,7 +7364,7 @@
       this.cleanup(this.data.observe("y", (v) => update2(this.container.g, { "transform": `translate(${this.data.x},${v})` })));
       this.cleanup(this.data.observe("w", (v) => this.container.w = v));
       this.cleanup(this.data.observe("h", (v) => this.container.h = v));
-      const windowCaption = new Button("Window Caption", { h: 15 });
+      const windowCaption = new Button(this.title + " New Window Tests", { h: 15 });
       this.container.use(new Movable3(windowCaption));
       this.container.children.addAll(windowCaption);
     }
@@ -7379,7 +7379,7 @@
       __name(this, "Display");
     }
     start({ item, view }) {
-      const window2 = new Window(item.type, { hMin: 500, gap: 1 });
+      const window2 = new Window(item.type, { hMin: 500, radius: 4, gap: 1 });
       window2.data = item;
       window2.view = view;
       view.add(window2);
@@ -7585,7 +7585,20 @@
     msg1.y = 333;
     msg1.w = 666;
     msg1.h = 666;
+    api.add(somePrompt);
+    api.add(highresPrompt1);
+    api.add(highresPrompt2);
+    api.add(highresPrompt3);
+    api.add(midjourneyPrompt);
     api.add(msg1);
+    api.add(outputNode);
+    api.connect(somePrompt.id, "output", midjourneyPrompt.id, "prompt");
+    api.connect(highresPrompt1.id, "output", midjourneyPrompt.id, "style");
+    const thirdPromptConnection = api.connect(highresPrompt2.id, "emphasis", midjourneyPrompt.id, "style");
+    thirdPromptConnection.enabled = false;
+    api.connect(midjourneyPrompt.id, "output", outputNode.id, "input");
+    const result = await api.run(outputNode.id);
+    console.log("usage.js api.execute said: ", result);
   }
   __name(usage_default, "default");
 

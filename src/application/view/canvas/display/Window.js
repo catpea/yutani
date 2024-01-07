@@ -26,7 +26,6 @@ export default class Window extends Cleanable {
   start() {
 
     this.container = new Container(this.title, this.design);
-    console.log('this.design',this.container.design);
     this.container.data = this.data;
     this.container.view = this.view;
     this.container.layout = new VerticalLayout(); // NOTE: a layout applies to children only, this will not set xywh of the root component
@@ -38,7 +37,7 @@ export default class Window extends Cleanable {
     this.cleanup(this.data.observe('h', v=>this.container.h=v));
 
 
-    const windowCaption = new Button("Window Caption", {h:15});
+    const windowCaption = new Button(this.title + " New Window Tests", {h:15});
     // this.container.use(new Selectable(windowCaption));
     //
     this.container.use( new Movable(windowCaption) );

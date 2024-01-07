@@ -49,24 +49,24 @@ export default async function(api){
 
   // setup relationships ---------------------------------------------------------------------------------------------------------------
 
-  // api.add(somePrompt);
-  // api.add(highresPrompt1);
-  // api.add(highresPrompt2);
-  // api.add(highresPrompt3);
-  // api.add(midjourneyPrompt);
+  api.add(somePrompt);
+  api.add(highresPrompt1);
+  api.add(highresPrompt2);
+  api.add(highresPrompt3);
+  api.add(midjourneyPrompt);
   api.add(msg1);
-  //
-  // api.add(outputNode);
-  //
-  // api.connect(somePrompt.id, 'output',         midjourneyPrompt.id, 'prompt');
-  // api.connect(highresPrompt1.id, 'output',     midjourneyPrompt.id, 'style');
-  // const thirdPromptConnection = api.connect(highresPrompt2.id, 'emphasis',   midjourneyPrompt.id, 'style');
-  // thirdPromptConnection.enabled = false;
-  // api.connect(midjourneyPrompt.id, 'output',   outputNode.id, 'input');
+
+  api.add(outputNode);
+
+  api.connect(somePrompt.id, 'output',         midjourneyPrompt.id, 'prompt');
+  api.connect(highresPrompt1.id, 'output',     midjourneyPrompt.id, 'style');
+  const thirdPromptConnection = api.connect(highresPrompt2.id, 'emphasis',   midjourneyPrompt.id, 'style');
+  thirdPromptConnection.enabled = false;
+  api.connect(midjourneyPrompt.id, 'output',   outputNode.id, 'input');
 
   // execute your program -------------------------------------------------------------------------------------------------------------
-  // const result = await api.run(outputNode.id);
-  // console.log('usage.js api.execute said: ', result);
+  const result = await api.run(outputNode.id);
+  console.log('usage.js api.execute said: ', result);
 
 
 

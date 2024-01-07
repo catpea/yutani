@@ -4,7 +4,7 @@ import Observable from "./Observable.js";
 
 
 export default class Component extends Observable {
-  debug = true;
+  DEBUG = false;
 
   g; // svg group node to contain everything
   el = {}; // bag of elements
@@ -28,7 +28,7 @@ export default class Component extends Observable {
     this.declare('h', 200); // this sets to 0
 
     // this.declare('y', this.bounds.y); // this sets to 0
-    if(this.debug) this.design.color = 'magenta';
+    if(this.DEBUG) this.design.color = 'magenta';
   }
 
 

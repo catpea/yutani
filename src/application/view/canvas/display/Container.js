@@ -56,7 +56,7 @@ export default class Container extends Component {
 
     });
 
-    this.el.CaptionText = svg.text({ fill: this.design.color, x: this.x, y: this.y,  }, this.name);
+    if(this.DEBUG) this.el.CaptionText = svg.text({ fill: this.design.color, x: this.x, y: this.y,  }, this.name);
 
   }
 
