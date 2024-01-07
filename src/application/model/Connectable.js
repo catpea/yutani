@@ -10,7 +10,7 @@ export default class Connectable extends Item {
     super();
     this.node = node;
 
-    const internalFields = ['id',  'type', 'x', 'y', 'executable', 'schema', 'omit'];
+    const internalFields = ['id',  'type', 'x', 'y', 'w', 'h', 'executable', 'schema', 'omit'];
 
     const nodeContent = [
       // ['kind', node.constructor.name],
@@ -28,7 +28,7 @@ export default class Connectable extends Item {
     const methodsObject = Object.fromEntries(methods);
 
     // all of these are now reactive
-    const defaults = {x:0, y:0};
+    const defaults = {x:0, y:0, w:320, h:200};
     this.inherit({...defaults, ...observablesObject});
 
     // now sockets - reactive arrays representing X/Y coordinates, and anchors for data flow

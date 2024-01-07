@@ -18,6 +18,7 @@ Retro-futuristic Visual Programming Language - Moving human capital beyond tomor
 
 ## Program Ideas
 
+- [] Atom/Pulsar Plugin For Application Structure Visualization
 - [] Video Slideshow Generator
 - [] Image Gallery Builder
 - [] Static site generator

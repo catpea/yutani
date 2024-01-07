@@ -5,15 +5,18 @@ export default class Node {
   id = uuid();
   type = 'Node';
 
+  // All nodes in a visual programming language require x and y
   x = 123;
   y = 345;
-  width = null;
+  w = 320;
+  h = 200;
 
-  input = "";
-
+  // System Properties
   executable = false;
-
   schema = null; // optional
+
+  // Node Properties (Inputs (strings) and Outputs (functions))
+  input = "";
 
   output(){
     return this.input;

@@ -3,8 +3,8 @@ import { svg, html, mouse, click, update, text, clip, front } from "domek";
 import Component from "./Component.js";
 import List from "./List.js";
 
+
 export default class Container extends Component {
-  root;
 	g = svg.g();
 
   name = "";
@@ -13,109 +13,67 @@ export default class Container extends Component {
 	constructor(name) {
 		super();
     this.name = name;
-    if(!this.root) this.root = this;
 
     // When a child is added...
 		this.cleanup(this.getChildren().observe('created', item => {
       // Structural Initialization
-      item.root = this.root;
       item.container = this;
       item.g = this.g;
+      // Item Layout & Lifecycle
 
-      // item.observe('width', x => this.width = this.calculateWidth())
-
-      // declared in Component.js
-      this.cleanup(item.observe('height', x => this.height = this.calculateHeight()))
-      // this.cleanup(item.observe('height', x => this.y = this.calculateY()))
+      // this.getLayout().manage(this, item); // layout now, parent should subscribe to xy
+			this.getLayout().manage(item);
+			if(this.container) this.cleanup(item.observe('h', whatever=>this.container.getLayout().refresh(this.container, this) ))
 
       item.start();
-      // update(this.el.Container, {height: this.height})
-
-      // console.error('MONITOR FOR NESTED CONTAINERS AND RECALCULATE BASED ON THEIR LISTS');
-      console.info(`${this.name} has ${this.getChildren().length} ${this.getChildren().length==1?'child':'children'} now`, this.getChildren().raw)
-      console.info(`${this.name}`, this.height , this.getChildren().raw)
+      console.log(`Added "${item.name||item.text}" to "${this.name}"`);
     }, {autorun:false}));
 
-
+		this.cleanup(this.getChildren().observe('removed', item => {
+      item.stop();
+      this.getLayout().forget(item);
+    }, {autorun:false}));
 
 	}
 
   createElements(){
+
     this.el.Container = svg.rect({
       name: this.name,
       class: 'node-box',
-      ry: this.bounds.radius,
-      width: this.width,
-      height: this.height,
-      // 'stroke-width': 2,
-      // stroke: this.bounds.color,
+      ry: this.design.radius,
+      'stroke-width': 2,
+      stroke: this.design.color,
+
+      // set initial values
+      // these are special, handeled by the layout manager
+      // NOTE: these are observables, getter returns a value, setter notifies listeners, and you can ```this.observe('x', v=>{...})```
+      width: this.w,
+      height: this.h,
       x: this.x,
       y: this.y,
+
     });
 
-    // this.el.CaptionText = svg.text({ fill: this.bounds.color, x: this.x, y: this.y,  }, this.name);
-
-
-    console.log(this.name, {      x: this.x,
-          y: this.y,});
-  }
-
-  appendElements(){
-    this.g.appendChild(this.el.Container)
-    // this.g.appendChild( this.el.CaptionText );
-    // Object.values(this.el).forEach(el => this.g.appendChild(el));
+    this.el.CaptionText = svg.text({ fill: this.design.color, x: this.x, y: this.y,  }, this.name);
 
   }
 
   updateElements(){
-    this.observe('height', height=>update(this.el.Container,{height}) );
-    this.observe('y', y=>update(this.el.Container,{y}) );
-    // this.observe('y', y=>update(this.el.CaptionText,{y}) );
-  }
 
-  removeElements(){
-    Object.values(this.el).forEach(el => el.remove());
-  }
-
-	start() {
-    this.createElements();
-    this.updateElements();
-    this.appendElements();
-
-
-    this.root.observe('height', height=> {
-      this.y = this.calculateY()
-    });
-
+    // obsere xywh of this component, and if it changes, update the svg drawing.
+    // NOTE: only the layout manager of parent container should set these (exception is the root container)
+    this.observe('w',  width=>update(this.el.Container,{width}),  {autorun: false});
+    this.observe('h', height=>update(this.el.Container,{height}), {autorun: false});
+    this.observe('x',      x=>update(this.el.Container,{x}),      {autorun: false});
+    this.observe('y',      y=>update(this.el.Container,{y}),      {autorun: false});
 
   }
-
-
-
-  stop() {
-    this.removeElements();
-  }
-
-
-
-
 
 
 
 	getChildren() {
 		return this.#children;
 	}
-
-  get aboveAll(){
-    if(!this.container) return [];
-    const selfIndex = this.container.getChildren().indexOf(this);
-    const response =  [...this.container.aboveAll, ...this.container.getChildren().slice(0, selfIndex )];
-    return response;
-  }
-  get above(){
-    const selfIndex = this.container.getChildren().indexOf(this);
-    const response =  this.container.getChildren().slice(0, selfIndex );
-    return response;
-  }
 
 }

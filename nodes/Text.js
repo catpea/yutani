@@ -2,7 +2,7 @@ import Node from "./Node.js";
 
 export default class Text extends Node {
 
-  width = 333;
+  w = 333;
 
   text = "";
 
