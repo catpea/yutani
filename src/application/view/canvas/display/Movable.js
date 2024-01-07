@@ -29,8 +29,8 @@ export default class Movable {
         this.begin({
             container: window,  // <g> element representing an SVG scene
                handle: this.control.el.Surface, // <rect> that is the caption of a window meant to be dragged
-                 read: (property) => this.parent.getData()[property],
-                write: (property, value) => this.parent.getData()[property] = value,
+                 read: (property) => this.parent.data[property],
+                write: (property, value) => this.parent.data[property] = value,
         })
       }// is started
     })// observe
@@ -40,7 +40,7 @@ export default class Movable {
 
   begin({ container, handle, read, write, view }) {
 
-    this.#removeTransformObserver = this.parent.getRoot().getView().observe('transform', v=>this.#scale = v.scale);
+    this.#removeTransformObserver = this.parent.root.view.observe('transform', v=>this.#scale = v.scale);
 
     this.#container = container;
     this.#handle = handle;

@@ -6657,6 +6657,112 @@
   // src/application/view/canvas/Display.js
   var import_oneof3 = __toESM(require_oneof(), 1);
 
+  // src/application/view/canvas/display/Layout.js
+  var BOTH_SIDES = 2;
+  var Layout = class {
+    static {
+      __name(this, "Layout");
+    }
+    container;
+    constructor() {
+    }
+    // refresh(container, child){
+    // 	// this.update(container, child);
+    // }
+    manage(child) {
+      child.x = this.calculateChildX(child);
+      child.y = this.calculateChildY(child);
+      child.w = this.calculateChildW(child);
+      this.container.observe("x", () => child.x = this.calculateChildX(child));
+      this.container.observe("y", () => child.y = this.calculateChildY(child));
+      this.container.observe("w", () => child.w = this.calculateChildW(child));
+      child.observe("h", () => this.container.h = this.calculateH());
+      this.container.observe("h", () => child.y = this.calculateChildY(child));
+      if (this.container.isRoot) {
+        console.log("IN ROOT", this.container);
+      }
+    }
+    update(container, child) {
+      child.x = this.calculateX(container, child);
+      child.y = this.calculateY(container, child);
+    }
+    calculateChildW() {
+      return 320 * Math.random();
+    }
+    calculateH() {
+      return 200 * Math.random();
+    }
+    calculateChildX(container, child) {
+      return 800 * Math.random();
+    }
+    calculateChildY(container, child) {
+      return 600 * Math.random();
+    }
+    // utility classes to help with simple and pretty looking calculations
+    // NOTE: these are getter so you can: this.o + this.child.e
+    above(container, child) {
+      const selfIndex = container.getChildren().indexOf(child);
+      return container.getChildren().slice(0, selfIndex);
+    }
+    #cleanup = [];
+    cleanup(...arg) {
+      this.#cleanup.push(...arg);
+    }
+  };
+  var VerticalLayout = class extends Layout {
+    static {
+      __name(this, "VerticalLayout");
+    }
+    constructor() {
+      super();
+    }
+    calculateChildW(child) {
+      console.log(`Calculating child width in ${this.container.name} for child ${child.name || child.text}`);
+      console.log(`My width is ${this.container.w}.`);
+      const response = this.container.w - (this.container.design.border + this.container.design.padding) * BOTH_SIDES;
+      console.log(`Returning ${response}`);
+      return response;
+    }
+    calculateH() {
+      let heightOfChildren = 0;
+      const children = this.container.getChildren();
+      heightOfChildren = children.reduce((total, c) => total + c.h, 0) + this.container.design.gap * 2 * (children.length > 0 ? children.length - 1 : 0);
+      const response = this.container.design.border + this.container.design.padding + this.container.design.h + // NOT A MISTAKE design can hold a base h that is used in calculations
+      heightOfChildren + this.container.design.padding + this.container.design.border;
+      return response;
+    }
+    // calculateH(container, child) {
+    //
+    // 	let childrenHeight = 0;
+    // 	if(child.getChildren) {
+    // 	// if(Container.prototype.isPrototypeOf(child)) {
+    // 	const children = child.getChildren();
+    // 		childrenHeight = children.reduce((total, c) => total + (c.h), 0) +
+    // 			((container.design.gap * 2) * (children.length > 0 ? children.length - 1 : 0 /* not counting gap in last child as it does not have one*/ ))
+    // 			// console.log(child.name, children.length, childrenHeight);
+    // 	}
+    //
+    // 	const response =
+    // 		child.design.border +
+    // 		child.design.padding +
+    // 		child.design.h + // NOT A MISTAKE design can hold a base h that is used in calculations
+    // 		childrenHeight +
+    // 	  child.design.padding +
+    // 		child.design.border;
+    // 	return response;
+    // }
+    calculateChildX() {
+      const response = this.container.x + // use my own x
+      this.container.design.border + // add border
+      this.container.design.padding;
+      return response;
+    }
+    calculateChildY(child) {
+      const response = this.container.y + this.container.design.border + this.container.design.padding + this.above(this.container, child).reduce((total, child2) => total + child2.h, 0) + this.container.design.gap * 2 * this.above(this.container, child).length;
+      return response;
+    }
+  };
+
   // src/application/view/canvas/display/Observable.js
   var Observable2 = class {
     static {
@@ -6694,17 +6800,24 @@
     // Observable Values
     #observers = {};
     // USER API
-    derived(observerCallback, eventNames) {
-      const destroy = [];
-      for (const eventName of eventNames) {
-        destroy.push(
-          this.observe(eventName, () => observerCallback(eventNames.map((key) => this.#properties[key])), { autorun: false })
-        );
-      }
-      return () => {
-        destroy.forEach((o) => o());
-      };
-    }
+    // observeAll(...input){
+    //
+    //   const eventNames = input;
+    //   const observerCallback = eventNames.pop();
+    //
+    //   const destroy = [];
+    //
+    //   for (const eventName of eventNames) {
+    //     destroy.push(
+    //       this.observe(eventName, ()=>observerCallback(eventNames.map(key=>this.#properties[key])), {autorun:false})
+    //     )
+    //   }
+    //
+    //   return () => {
+    //     destroy.forEach(o=>o())
+    //   };
+    //
+    // }
     observe(eventName, observerCallback, options = { autorun: true }) {
       if (options.autorun) {
         const isReactiveProperty = this.#properties.hasOwnProperty(eventName);
@@ -6748,8 +6861,6 @@
     // svg group node to contain everything
     el = {};
     // bag of elements
-    root;
-    // root container
     container;
     // parent container
     // these are observables and will be declared in the constructor
@@ -6774,27 +6885,30 @@
     }
     // STATE ENCAPSULATION
     #layout;
-    // layout manager APPLIES TO CHILDREN COMPONENTS ONLY
-    setLayout(layout) {
+    get layout() {
+      return this.#layout;
+    }
+    set layout(layout) {
+      if (!Layout.prototype.isPrototypeOf(layout))
+        throw new Error("Layout manager must be a descendant of Layout.");
       this.#layout = layout;
       this.#layout.container = this;
       return this;
     }
-    getLayout() {
-      return this.#layout;
-    }
+    // STATE ENCAPSULATION
     // this is the node we are decorating
     // NOTE: it contains observables like X and Y
-    data = {};
-    setData(data) {
-      this.data = data;
+    #data = {};
+    set data(data) {
+      this.#data = data;
       return this;
     }
-    getData() {
-      return this.data;
+    get data() {
+      return this.#data;
     }
+    // STATE ENCAPSULATION
     // presets and default values
-    design = {
+    #design = {
       h: 0,
       // baseline H, this is just added, never changes
       gap: 1,
@@ -6804,9 +6918,12 @@
       space: 0,
       color: ""
     };
-    setDesign(data) {
-      this.design = Object.assign(this.design, data);
+    set design(data) {
+      this.#design = Object.assign(this.#design, data);
       return this;
+    }
+    get design() {
+      return this.#design;
     }
     // DRAWING
     createElements() {
@@ -6821,44 +6938,51 @@
     }
     // LIFECYCLE
     start() {
-      console.log(`STARTING: ${this.name || this.text}`, this.traits);
       this.createElements();
       this.updateElements();
       this.appendElements();
-      this.traits.forEach((trait) => trait.start());
+      this.#traits.forEach((trait) => trait.start());
       this.started = true;
     }
     stop() {
-      this.traits.forEach((trait) => trait.stop());
+      this.#traits.forEach((trait) => trait.stop());
       this.getLayout.stop();
       this.removeElements();
       this.#cleanup.map((f) => f());
       Object.values(this.el).map((el) => el.remove());
     }
     // TREE
-    getRoot() {
-      if (!this.container)
-        return this;
-      return this.container.getRoot();
+    get isRoot() {
+      return !this.container;
+    }
+    get root() {
+      let response = null;
+      if (this.isRoot) {
+        response = this;
+      } else {
+        response = this.container.root;
+      }
+      return response;
     }
     // TRAITS/USE
-    traits = [];
+    #traits = [];
     use(trait) {
       trait.parent = this;
-      this.traits.push(trait);
-      this.cleanup(this.observe("started", (started) => {
-        if (started)
+      this.#traits.push(trait);
+      this.cleanup(this.observe("started", (componentStarted) => {
+        if (componentStarted)
           trait.start();
       }));
     }
+    // STATE ENCAPSULATION
     // VIEW RETRIEVAL (root only)
-    view = null;
-    setView(view) {
-      this.view = view;
+    #view = null;
+    set view(view) {
+      this.#view = view;
       return this;
     }
-    getView() {
-      return this.view;
+    get view() {
+      return this.#view;
     }
   };
 
@@ -6872,7 +6996,7 @@
     constructor(design) {
       super();
       if (design)
-        this.setDesign(design);
+        this.design = design;
       const a = ["Quantum", "Warp", "Neural", "Photon", "Reality", "Chronos", "Stellar", "Event Horizon", "Anti-Gravity", "Nanobots"];
       const b = ["Sync", "Drive", "Net", "Boost", "Shift", "Jump", "Nav", "Stabilizer", "Toggle", "Activation"];
       this.text = [(0, import_oneof2.default)(a), (0, import_oneof2.default)(b)].join(" ");
@@ -7082,15 +7206,12 @@
       this.cleanup(this.getChildren().observe("created", (item) => {
         item.container = this;
         item.g = this.g;
-        this.getLayout().manage(item);
-        if (this.container)
-          this.cleanup(item.observe("h", (whatever) => this.container.getLayout().refresh(this.container, this)));
         item.start();
-        console.log(`Added "${item.name || item.text}" to "${this.name}"`);
+        this.layout.manage(item);
       }, { autorun: false }));
       this.cleanup(this.getChildren().observe("removed", (item) => {
         item.stop();
-        this.getLayout().forget(item);
+        this.layout.forget(item);
       }, { autorun: false }));
     }
     createElements() {
@@ -7121,82 +7242,6 @@
     }
   };
 
-  // src/application/view/canvas/display/Layout.js
-  var BOTH_SIDES = 2;
-  var Layout = class {
-    static {
-      __name(this, "Layout");
-    }
-    container;
-    constructor() {
-    }
-    refresh(container, child) {
-      this.update(container, child);
-    }
-    manage(child) {
-      this.update(this.container, child);
-    }
-    update(container, child) {
-      child.w = this.calculateW(container, child);
-      child.h = this.calculateH(container, child);
-      child.x = this.calculateX(container, child);
-      child.y = this.calculateY(container, child);
-    }
-    calculateW(container, child) {
-      return 320 * Math.random();
-    }
-    calculateH(container, child) {
-      return 200 * Math.random();
-    }
-    calculateX(container, child) {
-      return 800 * Math.random();
-    }
-    calculateY(container, child) {
-      return 600 * Math.random();
-    }
-    // utility classes to help with simple and pretty looking calculations
-    // NOTE: these are getter so you can: this.o + this.child.e
-    above(container, child) {
-      const selfIndex = container.getChildren().indexOf(child);
-      return container.getChildren().slice(0, selfIndex);
-    }
-    #cleanup = [];
-    cleanup(...arg) {
-      this.#cleanup.push(...arg);
-    }
-  };
-  var VerticalLayout = class extends Layout {
-    static {
-      __name(this, "VerticalLayout");
-    }
-    constructor() {
-      super();
-    }
-    calculateW(container, child) {
-      const response = container.w - (container.design.border + container.design.padding) * BOTH_SIDES;
-      return response;
-    }
-    calculateH(container, child) {
-      let childrenHeight = 0;
-      if (child.getChildren) {
-        const children = child.getChildren();
-        childrenHeight = children.reduce((total, c) => total + c.h, 0) + container.design.gap * 2 * (children.length > 0 ? children.length - 1 : 0);
-        console.log(child.name, children.length, childrenHeight);
-      }
-      const response = child.design.border + child.design.padding + child.design.h + // NOT A MISTAKE design can hold a base h that is used in calculations
-      childrenHeight + child.design.padding + child.design.border;
-      return response;
-    }
-    calculateX(container, child) {
-      const response = container.x + container.design.border + container.design.padding;
-      return response;
-    }
-    calculateY(container, child) {
-      const response = container.y + container.design.border + container.design.padding + this.above(container, child).reduce((total, child2) => total + child2.h, 0) + container.design.gap * 2 * this.above(container, child).length;
-      return response;
-    }
-  };
-
   // src/application/view/canvas/display/VBox.js
   var VBox = class extends Container2 {
     static {
@@ -7204,7 +7249,7 @@
     }
     constructor(...arg) {
       super(...arg);
-      this.setLayout(new VerticalLayout());
+      this.layout = new VerticalLayout();
     }
   };
 
@@ -7217,17 +7262,24 @@
       super(...more);
       if (text2)
         this.text = text2;
-      this.design.h = 32;
-      console.log(this);
+      this.h = this.design.h || 32;
+      if (this.design.dqd)
+        setInterval(() => {
+          this.h = this.design.h || 32 + this.design.dqd * Math.random();
+        }, 333);
     }
     createElements() {
-      console.log("label", this.above);
       this.el.Surface = svg.rect({ class: `node-captiond`, fill: "#2c434a", ry: this.design.radius, width: this.w, x: this.x, y: this.y, height: this.h });
       this.el.SurfaceText = svg.text({ class: `node-caption caption-text node-text`, style: "pointer-events: none; user-select: none;", x: this.x + this.w * 0.02 }, this.text);
     }
     updateElements() {
+      this.observe("x", (x) => update2(this.el.Surface, { x }));
       this.observe("y", (y) => update2(this.el.Surface, { y }));
+      this.observe("w", (width) => update2(this.el.Surface, { width }));
+      this.observe("h", (height) => update2(this.el.Surface, { height }));
+      this.observe("x", (x) => update2(this.el.SurfaceText, { x }));
       this.observe("y", (y) => update2(this.el.SurfaceText, { y: y + (this.h - this.h * 0.12) }));
+      this.observe("h", (h) => update2(this.el.SurfaceText, { y: this.y + (h - h * 0.12) }));
     }
   };
 
@@ -7264,14 +7316,14 @@
             // <g> element representing an SVG scene
             handle: this.control.el.Surface,
             // <rect> that is the caption of a window meant to be dragged
-            read: (property) => this.parent.getData()[property],
-            write: (property, value) => this.parent.getData()[property] = value
+            read: (property) => this.parent.data[property],
+            write: (property, value) => this.parent.data[property] = value
           });
         }
       });
     }
     begin({ container, handle, read, write, view }) {
-      this.#removeTransformObserver = this.parent.getRoot().getView().observe("transform", (v) => this.#scale = v.scale);
+      this.#removeTransformObserver = this.parent.root.view.observe("transform", (v) => this.#scale = v.scale);
       this.#container = container;
       this.#handle = handle;
       this.#read = read;
@@ -7326,10 +7378,10 @@
     }
     start({ item, view }) {
       const container = new Container2("Node-Window");
-      container.setData(item);
-      container.setView(view);
-      container.setDesign({ gap: 1 });
-      container.setLayout(new VerticalLayout());
+      container.data = item;
+      container.view = view;
+      container.design = { gap: 1 };
+      container.layout = new VerticalLayout();
       this.cleanup(item.observe("x", (v) => update2(container.g, { "transform": `translate(${v},${item.y})` })));
       this.cleanup(item.observe("y", (v) => update2(container.g, { "transform": `translate(${item.x},${v})` })));
       this.cleanup(item.observe("w", (v) => container.w = v));
@@ -7338,7 +7390,7 @@
       const windowCaption = new Button("Window Caption", { h: 15 });
       container.use(new Movable3(windowCaption));
       container.getChildren().addAll(windowCaption);
-      container.getChildren().addAll(new Button("Second Button"));
+      container.getChildren().addAll(new Button("Second Button To test Y", { dqd: 10 }));
       const box1 = new VBox("Box1");
       container.getChildren().addAll(box1);
       box1.getChildren().addAll(new Button("Box 1 > First Button"));
@@ -7350,6 +7402,8 @@
         const chosen = (0, import_oneof3.default)([container, box1, box11]);
         chosen.getChildren().addAll(new Button(null));
       };
+      setInterval(globalThis.xxx, 1e3);
+      return;
     }
   };
 

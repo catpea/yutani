@@ -25,12 +25,12 @@ export default class Connection extends Base {
 		const targetPort = targetNode.Input.get(item.targetPort);
 
 		if([sourceNode, targetNode, sourcePort, targetPort].some(o => o == undefined)) {
-			console.log('MISSING DATA', item, { sourceNode, targetNode, sourcePort, targetPort });
+			console .log('MISSING DATA', item, { sourceNode, targetNode, sourcePort, targetPort });
 		}
 
 		if(!targetPort) {
 			console.error(`Connectable "${item.targetNode}" did not have Input named "${item.targetPort}"`)
-			console.log(item.targetNode, targetNode);
+			console .log(item.targetNode, targetNode);
 			throw new Error('targetPort not found')
 		}
 

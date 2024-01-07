@@ -29,10 +29,11 @@ export default class Display extends Base {
   start({item, view}){
 
     const container = new Container("Node-Window"); // VBox has the Vertical Layout
-    container.setData(item); // data will now be available under .root.data
-    container.setView(view); // communication with the view, only on root element.
-    container.setDesign({gap:1});
-    container.setLayout(new VerticalLayout()); // NOTE: a layout applies to children only, this will not set xywh of the root component
+    container.data = item; // data will now be available under .root.data
+    container.view = view; // communication with the view, only on root element.
+    container.design = {gap:1};
+
+    container.layout = new VerticalLayout(); // NOTE: a layout applies to children only, this will not set xywh of the root component
 
     this.cleanup(item.observe('x', v=>update(container.g,{'transform':`translate(${v},${item.y})`} )));
     this.cleanup(item.observe('y', v=>update(container.g,{'transform':`translate(${item.x},${v})`} )));
@@ -46,14 +47,15 @@ export default class Display extends Base {
 
     const windowCaption = new Button("Window Caption", {h:15});
     // container.use(new Selectable(windowCaption));
-    // container.use(new Focusable(windowCaption));
+
     container.use( new Movable(windowCaption) );
+    // container.use(new Focusable(windowCaption));
+
     container.getChildren().addAll(windowCaption);
 
 
 
-
-    container.getChildren().addAll(new Button("Second Button"));
+    container.getChildren().addAll(new Button("Second Button To test Y", {dqd:10}));
 
     const box1 = new VBox("Box1");
     container.getChildren().addAll(box1);
@@ -68,7 +70,8 @@ export default class Display extends Base {
       const chosen = oneOf([container, box1, box11]);
       chosen.getChildren().addAll( new Button(null) );
     };
-    // setInterval(globalThis.xxx, 1_000)
+    setInterval(globalThis.xxx, 1_000)
+    return;
 
 
   }

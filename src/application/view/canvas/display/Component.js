@@ -1,3 +1,5 @@
+import { Layout } from "./Layout.js";
+
 import Observable from "./Observable.js";
 
 
@@ -7,10 +9,7 @@ export default class Component extends Observable {
   g; // svg group node to contain everything
   el = {}; // bag of elements
 
-  root; // root container
   container; // parent container
-
-
 
   // these are observables and will be declared in the constructor
   x;
@@ -33,7 +32,6 @@ export default class Component extends Observable {
   }
 
   // GARBAGE COLLECTION
-
   #cleanup = [];
   cleanup(...arg){
     this.#cleanup.push(...arg);
@@ -42,34 +40,35 @@ export default class Component extends Observable {
 
 
   // STATE ENCAPSULATION
-  #layout; // layout manager APPLIES TO CHILDREN COMPONENTS ONLY
-
-  setLayout(layout) {
+  #layout;
+  get layout(){
+    return this.#layout;
+  }
+  set layout(layout){
+    if(!Layout.prototype.isPrototypeOf(layout)) throw new Error('Layout manager must be a descendant of Layout.');
     this.#layout = layout;
     this.#layout.container = this;
     return this;
   }
 
-  getLayout() {
-    return this.#layout;
-  }
 
 
-
+  // STATE ENCAPSULATION
   // this is the node we are decorating
   // NOTE: it contains observables like X and Y
-  data = {};
-
-  setData(data) {
-    this.data = data;
+  #data = {};
+  set data(data) {
+    this.#data = data;
     return this;
   }
-  getData() {
-    return this.data;
+  get data() {
+    return this.#data;
   }
 
+
+  // STATE ENCAPSULATION
   // presets and default values
-  design = {
+  #design = {
     h: 0, // baseline H, this is just added, never changes
     gap: 1,
     border: 1,
@@ -78,10 +77,12 @@ export default class Component extends Observable {
     space: 0,
     color: '',
   }
-
-  setDesign(data) {
-    this.design = Object.assign(this.design, data);
+  set design(data) {
+    this.#design = Object.assign(this.#design, data);
     return this;
+  }
+  get design() {
+    return this.#design;
   }
 
 
@@ -107,12 +108,12 @@ export default class Component extends Observable {
 
   // LIFECYCLE
   start() {
-    console.log(`STARTING: ${this.name||this.text}`, this.traits);
+    // console.log(`STARTING: ${this.name||this.text}`, this.traits);
     this.createElements(); //TODO: rename to create
     this.updateElements(); //TODO: rename to update
     this.appendElements(); //TODO: rename to append
 
-    this.traits.forEach(trait=>trait.start());
+    this.#traits.forEach(trait=>trait.start());
 
 
     //NOTE: root container, handles its own X and Y,
@@ -122,7 +123,7 @@ export default class Component extends Observable {
   }
 
   stop() {
-    this.traits.forEach(trait=>trait.stop());
+    this.#traits.forEach(trait=>trait.stop());
 
     this.getLayout.stop();
     this.removeElements();
@@ -132,20 +133,28 @@ export default class Component extends Observable {
 
 
   // TREE
+  get isRoot(){
+    return !this.container;
+  }
 
-  getRoot() {
-    if(!this.container) return this;
-    return this.container.getRoot();
+  get root() {
+    let response = null;
+    if(this.isRoot){
+      response = this;
+    }else{
+    response = this.container.root;
+    }
+    return response;
   }
 
 
   // TRAITS/USE
-  traits = [];
+  #traits = [];
   use(trait){
     trait.parent = this;
-    this.traits.push(trait);
-    this.cleanup(this.observe('started', started=>{
-      if(started) trait.start();
+    this.#traits.push(trait);
+    this.cleanup(this.observe('started', componentStarted=>{
+      if(componentStarted) trait.start();
     }))
   }
 
@@ -155,16 +164,15 @@ export default class Component extends Observable {
 
 
 
-
+  // STATE ENCAPSULATION
   // VIEW RETRIEVAL (root only)
-  view = null;
-
-  setView(view) {
-    this.view = view;
+  #view = null;
+  set view(view) {
+    this.#view = view;
     return this;
   }
-  getView() {
-    return this.view;
+  get view() {
+    return this.#view;
   }
 
 }

@@ -27,7 +27,7 @@ export default class Observable {
 		});
 	}
   dump(){
-    console.log(this.#properties);
+    console .log(this.#properties);
     return this.#properties;
   }
 
@@ -35,20 +35,24 @@ export default class Observable {
 	#observers = {};
 
 	// USER API
-	derived(observerCallback, eventNames){
-    const destroy = [];
-
-    for (const eventName of eventNames) {
-      destroy.push(
-        this.observe(eventName, ()=>observerCallback(eventNames.map(key=>this.#properties[key])), {autorun:false})
-      )
-    }
-
-    return () => {
-      destroy.forEach(o=>o())
-    };
-
-  }
+	// observeAll(...input){
+  //
+  //   const eventNames = input;
+  //   const observerCallback = eventNames.pop();
+  //
+  //   const destroy = [];
+  //
+  //   for (const eventName of eventNames) {
+  //     destroy.push(
+  //       this.observe(eventName, ()=>observerCallback(eventNames.map(key=>this.#properties[key])), {autorun:false})
+  //     )
+  //   }
+  //
+  //   return () => {
+  //     destroy.forEach(o=>o())
+  //   };
+  //
+  // }
 	observe(eventName, observerCallback, options = {autorun:true}) {
 
 		if(options.autorun) {

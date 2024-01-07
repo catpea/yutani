@@ -5,7 +5,7 @@ export default class VBox extends Container {
 
 	constructor(...arg) {
 		super(...arg);
-		this.setLayout(new VerticalLayout()); // NOTE: a layout applies to children only, this will not set xywh of the root component
+		this.layout = new VerticalLayout(); // NOTE: a layout applies to children only, this will not set xywh of the root component
 	}
 
 }

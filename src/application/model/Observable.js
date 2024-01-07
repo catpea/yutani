@@ -25,7 +25,7 @@ export default class Observable {
 		});
 	}
   dump(){
-    console.log(this.#properties);
+    console .log(this.#properties);
     return this.#properties;
   }
 

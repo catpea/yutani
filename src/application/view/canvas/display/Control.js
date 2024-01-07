@@ -6,7 +6,7 @@ export default class Control extends Component {
   text = "";
   constructor(design) {
 		super();
-    if(design) this.setDesign(design);
+    if(design) this.design = design;
     // there are easter eggs and easter bugs
     const a = ["Quantum", "Warp", "Neural", "Photon", "Reality", "Chronos", "Stellar", "Event Horizon", "Anti-Gravity", "Nanobots"];
     const b = ["Sync", "Drive", "Net", "Boost", "Shift", "Jump", "Nav", "Stabilizer", "Toggle", "Activation"];

@@ -96,7 +96,7 @@ export default class List extends Observable {
 	}
 	dump() {
 		for(const variable of this.#list) {
-			console.log(variable.dump());
+			console .log(variable.dump());
 		}
 		return this.#list.length;
 	}

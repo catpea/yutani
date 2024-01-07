@@ -19,19 +19,19 @@ export default class Container extends Component {
       // Structural Initialization
       item.container = this;
       item.g = this.g;
+
       // Item Layout & Lifecycle
+			item.start();
+			this.layout.manage(item);
 
-      // this.getLayout().manage(this, item); // layout now, parent should subscribe to xy
-			this.getLayout().manage(item);
-			if(this.container) this.cleanup(item.observe('h', whatever=>this.container.getLayout().refresh(this.container, this) ))
+			// if(this.container) this.cleanup(item.observe('h', whatever=>this.container.getLayout().refresh(this.container, this) ))
 
-      item.start();
-      console.log(`Added "${item.name||item.text}" to "${this.name}"`);
+      // console.log(`Added "${item.name||item.text}" to "${this.name}"`);
     }, {autorun:false}));
 
 		this.cleanup(this.getChildren().observe('removed', item => {
       item.stop();
-      this.getLayout().forget(item);
+      this.layout.forget(item);
     }, {autorun:false}));
 
 	}
