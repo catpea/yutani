@@ -31,11 +31,7 @@ export default class Component extends Observable {
     if(this.debug) this.design.color = 'magenta';
   }
 
-  // GARBAGE COLLECTION
-  #cleanup = [];
-  cleanup(...arg){
-    this.#cleanup.push(...arg);
-  }
+
 
 
 
@@ -127,7 +123,7 @@ export default class Component extends Observable {
 
     this.getLayout.stop();
     this.removeElements();
-    this.#cleanup.map(f=>f());
+    this.cleanupNow();
     Object.values(this.el).map(el=>el.remove());
   }
 

@@ -1,10 +1,9 @@
-export default class Observable {
+import Cleanable from "./Cleanable.js";
 
 
-  #cleanup = [];
-  cleanup(...arg){
-    this.#cleanup.push(...arg);
-  }
+export default class Observable extends Cleanable {
+
+
 
 
 	// Reactive Properties

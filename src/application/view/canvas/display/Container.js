@@ -10,12 +10,13 @@ export default class Container extends Component {
   name = "";
 	#children = new List();
 
-	constructor(name) {
+	constructor(name, design) {
 		super();
     this.name = name;
+    this.design = design;
 
     // When a child is added...
-		this.cleanup(this.getChildren().observe('created', item => {
+		this.cleanup(this.children.observe('created', item => {
       // Structural Initialization
       item.container = this;
       item.g = this.g;
@@ -29,7 +30,7 @@ export default class Container extends Component {
       // console.log(`Added "${item.name||item.text}" to "${this.name}"`);
     }, {autorun:false}));
 
-		this.cleanup(this.getChildren().observe('removed', item => {
+		this.cleanup(this.children.observe('removed', item => {
       item.stop();
       this.layout.forget(item);
     }, {autorun:false}));
@@ -72,7 +73,7 @@ export default class Container extends Component {
 
 
 
-	getChildren() {
+	get children() {
 		return this.#children;
 	}
 

@@ -119,9 +119,14 @@ export default class Canvas extends Item {
 	}
 
 
-  add(component){
-    this.scene.appendChild( component.g );
-    component.start();
+  // add(component){
+  //   this.scene.appendChild( component.g );
+  //   component.start();
+  // }
+  add(composite){
+    console.log(composite);
+    composite.start();
+    this.scene.appendChild( composite.container.g );
   }
 
 }

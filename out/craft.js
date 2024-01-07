@@ -6666,25 +6666,7 @@
     container;
     constructor() {
     }
-    // refresh(container, child){
-    // 	// this.update(container, child);
-    // }
     manage(child) {
-      child.x = this.calculateChildX(child);
-      child.y = this.calculateChildY(child);
-      child.w = this.calculateChildW(child);
-      this.container.observe("x", () => child.x = this.calculateChildX(child));
-      this.container.observe("y", () => child.y = this.calculateChildY(child));
-      this.container.observe("w", () => child.w = this.calculateChildW(child));
-      child.observe("h", () => this.container.h = this.calculateH());
-      this.container.observe("h", () => child.y = this.calculateChildY(child));
-      if (this.container.isRoot) {
-        console.log("IN ROOT", this.container);
-      }
-    }
-    update(container, child) {
-      child.x = this.calculateX(container, child);
-      child.y = this.calculateY(container, child);
     }
     calculateChildW() {
       return 320 * Math.random();
@@ -6698,11 +6680,8 @@
     calculateChildY(container, child) {
       return 600 * Math.random();
     }
-    // utility classes to help with simple and pretty looking calculations
-    // NOTE: these are getter so you can: this.o + this.child.e
     above(container, child) {
-      const selfIndex = container.getChildren().indexOf(child);
-      return container.getChildren().slice(0, selfIndex);
+      return container.children.slice(0, container.children.indexOf(child));
     }
     #cleanup = [];
     cleanup(...arg) {
@@ -6716,6 +6695,16 @@
     constructor() {
       super();
     }
+    manage(child) {
+      child.x = this.calculateChildX(child);
+      child.y = this.calculateChildY(child);
+      child.w = this.calculateChildW(child);
+      this.container.observe("x", () => child.x = this.calculateChildX(child));
+      this.container.observe("y", () => child.y = this.calculateChildY(child));
+      this.container.observe("w", () => child.w = this.calculateChildW(child));
+      child.observe("h", () => this.container.h = this.calculateH());
+      this.container.observe("h", () => child.y = this.calculateChildY(child));
+    }
     calculateChildW(child) {
       console.log(`Calculating child width in ${this.container.name} for child ${child.name || child.text}`);
       console.log(`My width is ${this.container.w}.`);
@@ -6725,32 +6714,14 @@
     }
     calculateH() {
       let heightOfChildren = 0;
-      const children = this.container.getChildren();
+      const children = this.container.children;
       heightOfChildren = children.reduce((total, c) => total + c.h, 0) + this.container.design.gap * 2 * (children.length > 0 ? children.length - 1 : 0);
-      const response = this.container.design.border + this.container.design.padding + this.container.design.h + // NOT A MISTAKE design can hold a base h that is used in calculations
+      let response = this.container.design.border + this.container.design.padding + this.container.design.h + // NOT A MISTAKE design can hold a base h that is used in calculations
       heightOfChildren + this.container.design.padding + this.container.design.border;
+      if (response < this.container.design.hMin)
+        response = this.container.design.hMin;
       return response;
     }
-    // calculateH(container, child) {
-    //
-    // 	let childrenHeight = 0;
-    // 	if(child.getChildren) {
-    // 	// if(Container.prototype.isPrototypeOf(child)) {
-    // 	const children = child.getChildren();
-    // 		childrenHeight = children.reduce((total, c) => total + (c.h), 0) +
-    // 			((container.design.gap * 2) * (children.length > 0 ? children.length - 1 : 0 /* not counting gap in last child as it does not have one*/ ))
-    // 			// console.log(child.name, children.length, childrenHeight);
-    // 	}
-    //
-    // 	const response =
-    // 		child.design.border +
-    // 		child.design.padding +
-    // 		child.design.h + // NOT A MISTAKE design can hold a base h that is used in calculations
-    // 		childrenHeight +
-    // 	  child.design.padding +
-    // 		child.design.border;
-    // 	return response;
-    // }
     calculateChildX() {
       const response = this.container.x + // use my own x
       this.container.design.border + // add border
@@ -6763,14 +6734,25 @@
     }
   };
 
+  // src/application/view/canvas/display/Cleanable.js
+  var Cleanable = class {
+    static {
+      __name(this, "Cleanable");
+    }
+    // GARBAGE COLLECTION
+    #trash = [];
+    cleanup(...arg) {
+      this.#trash.push(...arg);
+    }
+    cleanupNow() {
+      this.#trash.map((f) => f());
+    }
+  };
+
   // src/application/view/canvas/display/Observable.js
-  var Observable2 = class {
+  var Observable2 = class extends Cleanable {
     static {
       __name(this, "Observable");
-    }
-    #cleanup = [];
-    cleanup(...arg) {
-      this.#cleanup.push(...arg);
     }
     // Reactive Properties
     #properties = {};
@@ -6878,11 +6860,6 @@
       if (this.debug)
         this.design.color = "magenta";
     }
-    // GARBAGE COLLECTION
-    #cleanup = [];
-    cleanup(...arg) {
-      this.#cleanup.push(...arg);
-    }
     // STATE ENCAPSULATION
     #layout;
     get layout() {
@@ -6948,7 +6925,7 @@
       this.#traits.forEach((trait) => trait.stop());
       this.getLayout.stop();
       this.removeElements();
-      this.#cleanup.map((f) => f());
+      this.cleanupNow();
       Object.values(this.el).map((el) => el.remove());
     }
     // TREE
@@ -7200,16 +7177,17 @@
     g = svg.g();
     name = "";
     #children = new List();
-    constructor(name) {
+    constructor(name, design) {
       super();
       this.name = name;
-      this.cleanup(this.getChildren().observe("created", (item) => {
+      this.design = design;
+      this.cleanup(this.children.observe("created", (item) => {
         item.container = this;
         item.g = this.g;
         item.start();
         this.layout.manage(item);
       }, { autorun: false }));
-      this.cleanup(this.getChildren().observe("removed", (item) => {
+      this.cleanup(this.children.observe("removed", (item) => {
         item.stop();
         this.layout.forget(item);
       }, { autorun: false }));
@@ -7237,19 +7215,8 @@
       this.observe("x", (x) => update2(this.el.Container, { x }), { autorun: false });
       this.observe("y", (y) => update2(this.el.Container, { y }), { autorun: false });
     }
-    getChildren() {
+    get children() {
       return this.#children;
-    }
-  };
-
-  // src/application/view/canvas/display/VBox.js
-  var VBox = class extends Container2 {
-    static {
-      __name(this, "VBox");
-    }
-    constructor(...arg) {
-      super(...arg);
-      this.layout = new VerticalLayout();
     }
   };
 
@@ -7371,39 +7338,51 @@
     }
   };
 
+  // src/application/view/canvas/display/Window.js
+  var Window = class extends Cleanable {
+    static {
+      __name(this, "Window");
+    }
+    title;
+    design;
+    container;
+    data;
+    view;
+    constructor(title, design) {
+      super();
+      this.title = title;
+      this.design = design;
+    }
+    start() {
+      this.container = new Container2(this.title, this.design);
+      console.log("this.design", this.container.design);
+      this.container.data = this.data;
+      this.container.view = this.view;
+      this.container.layout = new VerticalLayout();
+      this.container.start();
+      this.cleanup(this.data.observe("x", (v) => update2(this.container.g, { "transform": `translate(${v},${this.data.y})` })));
+      this.cleanup(this.data.observe("y", (v) => update2(this.container.g, { "transform": `translate(${this.data.x},${v})` })));
+      this.cleanup(this.data.observe("w", (v) => this.container.w = v));
+      this.cleanup(this.data.observe("h", (v) => this.container.h = v));
+      const windowCaption = new Button("Window Caption", { h: 15 });
+      this.container.use(new Movable3(windowCaption));
+      this.container.children.addAll(windowCaption);
+    }
+    add(...components) {
+      this.container.children.add(...components);
+    }
+  };
+
   // src/application/view/canvas/Display.js
   var Display = class extends Base {
     static {
       __name(this, "Display");
     }
     start({ item, view }) {
-      const container = new Container2("Node-Window");
-      container.data = item;
-      container.view = view;
-      container.design = { gap: 1 };
-      container.layout = new VerticalLayout();
-      this.cleanup(item.observe("x", (v) => update2(container.g, { "transform": `translate(${v},${item.y})` })));
-      this.cleanup(item.observe("y", (v) => update2(container.g, { "transform": `translate(${item.x},${v})` })));
-      this.cleanup(item.observe("w", (v) => container.w = v));
-      this.cleanup(item.observe("h", (v) => container.h = v));
-      view.add(container);
-      const windowCaption = new Button("Window Caption", { h: 15 });
-      container.use(new Movable3(windowCaption));
-      container.getChildren().addAll(windowCaption);
-      container.getChildren().addAll(new Button("Second Button To test Y", { dqd: 10 }));
-      const box1 = new VBox("Box1");
-      container.getChildren().addAll(box1);
-      box1.getChildren().addAll(new Button("Box 1 > First Button"));
-      const box11 = new VBox("Box11");
-      box1.getChildren().addAll(box11);
-      box11.getChildren().addAll(new Button("Box 1 > 1 > First Button"));
-      box11.getChildren().addAll(new Button("Box 1 > 1 > Second Button"));
-      globalThis.xxx = () => {
-        const chosen = (0, import_oneof3.default)([container, box1, box11]);
-        chosen.getChildren().addAll(new Button(null));
-      };
-      setInterval(globalThis.xxx, 1e3);
-      return;
+      const window2 = new Window(item.type, { hMin: 500, gap: 1 });
+      window2.data = item;
+      window2.view = view;
+      view.add(window2);
     }
   };
 
@@ -7500,9 +7479,14 @@
     disposeConnection({ item }) {
       this.renderers.get(item.id).stop();
     }
-    add(component) {
-      this.scene.appendChild(component.g);
-      component.start();
+    // add(component){
+    //   this.scene.appendChild( component.g );
+    //   component.start();
+    // }
+    add(composite) {
+      console.log(composite);
+      composite.start();
+      this.scene.appendChild(composite.container.g);
     }
   };
 
