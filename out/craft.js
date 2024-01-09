@@ -7340,36 +7340,35 @@
   };
 
   // src/application/view/canvas/display/Window.js
-  var Window = class extends Cleanable {
+  var Window = class extends Container2 {
     static {
       __name(this, "Window");
     }
-    title;
-    design;
-    container;
-    data;
-    view;
-    constructor(title, design) {
-      super();
-      this.title = title;
-      this.design = design;
+    constructor(...argv) {
+      super(...argv);
+      this.layout = new VerticalLayout();
     }
     start() {
-      this.container = new Container2(this.title, this.design);
-      this.container.data = this.data;
-      this.container.view = this.view;
-      this.container.layout = new VerticalLayout();
-      this.container.start();
-      this.cleanup(this.data.observe("x", (v) => update2(this.container.g, { "transform": `translate(${v},${this.data.y})` })));
-      this.cleanup(this.data.observe("y", (v) => update2(this.container.g, { "transform": `translate(${this.data.x},${v})` })));
-      this.cleanup(this.data.observe("w", (v) => this.container.w = v));
-      this.cleanup(this.data.observe("h", (v) => this.container.h = v));
-      const windowCaption = new Button(this.title + " New Window Tests", { h: 15 });
-      this.container.use(new Movable3(windowCaption));
-      this.container.children.addAll(windowCaption);
+      super.start();
+      this.cleanup(this.data.observe("x", (v) => update2(this.g, { "transform": `translate(${v},${this.data.y})` })));
+      this.cleanup(this.data.observe("y", (v) => update2(this.g, { "transform": `translate(${this.data.x},${v})` })));
+      this.cleanup(this.data.observe("w", (v) => this.w = v));
+      this.cleanup(this.data.observe("h", (v) => this.h = v));
+      console.log("xxx", this.data);
+      const windowCaption = new Button(`type:${this.data.type}: A Window Tests`, { h: 15 });
+      this.use(new Movable3(windowCaption));
+      this.children.addAll(windowCaption);
+      const inputPort = new Button("o <-- Data Input ...........(ThroughPort.js)...............  Data Output --> o", {});
+      this.children.add(inputPort);
+      const foreignElementTest = new Button("I am an example DIV Tag, with some text in it.", { h: 100 });
+      this.children.add(foreignElementTest);
+      const foreignElementTest1 = new Button("I am an ANSI Terminal", { h: 100 });
+      this.children.add(foreignElementTest1);
+      const foreignElementTest2 = new Button("I am Code Mirror 6, woot!", { h: 100 });
+      this.children.add(foreignElementTest2);
     }
-    add(...components) {
-      this.container.children.add(...components);
+    addTo(container, ...components) {
+      this[container].add(...components);
     }
   };
 
@@ -7379,10 +7378,10 @@
       __name(this, "Display");
     }
     start({ item, view }) {
-      const window2 = new Window(item.type, { hMin: 500, radius: 4, gap: 1 });
-      window2.data = item;
-      window2.view = view;
-      view.add(window2);
+      const window1 = new Window(item.type, { _hMin: 500, radius: 4, gap: 1 });
+      window1.data = item;
+      window1.view = view;
+      view.add(window1);
     }
   };
 
@@ -7479,15 +7478,15 @@
     disposeConnection({ item }) {
       this.renderers.get(item.id).stop();
     }
-    // add(component){
-    //   this.scene.appendChild( component.g );
-    //   component.start();
-    // }
-    add(composite) {
-      console.log(composite);
-      composite.start();
-      this.scene.appendChild(composite.container.g);
+    add(component) {
+      this.scene.appendChild(component.g);
+      component.start();
     }
+    // add(composite){
+    //   console.log(composite);
+    //   composite.start();
+    //   this.scene.appendChild( composite.container.g );
+    // }
   };
 
   // nodes/Message.js
@@ -7597,8 +7596,6 @@
     const thirdPromptConnection = api.connect(highresPrompt2.id, "emphasis", midjourneyPrompt.id, "style");
     thirdPromptConnection.enabled = false;
     api.connect(midjourneyPrompt.id, "output", outputNode.id, "input");
-    const result = await api.run(outputNode.id);
-    console.log("usage.js api.execute said: ", result);
   }
   __name(usage_default, "default");
 

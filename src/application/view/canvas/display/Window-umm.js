@@ -10,48 +10,48 @@ import Focusable from "./Focusable.js";
 import { VerticalLayout } from "./Layout.js";
 import Cleanable from "./Cleanable.js";
 
-export default class Window extends Container {
+export default class Window extends Cleanable {
+  title;
+  design;
+  container;
+  data;
+  view;
 
-  constructor(...argv) {
-    super(...argv);
-		this.layout = new VerticalLayout(); // NOTE: a layout applies to children only, this will not set xywh of the root component
-	}
+  constructor(title, design) {
+    super();
+    this.title = title;
+    this.design = design;
+  }
 
   start() {
-    super.start();
 
-    this.cleanup(this.data.observe('x', v=>update(this.g,{'transform':`translate(${v},${this.data.y})`} )));
-    this.cleanup(this.data.observe('y', v=>update(this.g,{'transform':`translate(${this.data.x},${v})`} )));
-    this.cleanup(this.data.observe('w', v=>this.w=v));
-    this.cleanup(this.data.observe('h', v=>this.h=v));
+    this.container = new Container(this.title, this.design);
+    this.container.data = this.data;
+    this.container.view = this.view;
+    this.container.layout = new VerticalLayout(); // NOTE: a layout applies to children only, this will not set xywh of the root component
+    this.container.start()
 
-    console.log('xxx', this.data);
-    const windowCaption = new Button(`type:${this.data.type}: A Window Tests`, {h:15});
-    // this.use(new Selectable(windowCaption));
+    this.cleanup(this.data.observe('x', v=>update(this.container.g,{'transform':`translate(${v},${this.data.y})`} )));
+    this.cleanup(this.data.observe('y', v=>update(this.container.g,{'transform':`translate(${this.data.x},${v})`} )));
+    this.cleanup(this.data.observe('w', v=>this.container.w=v));
+    this.cleanup(this.data.observe('h', v=>this.container.h=v));
+
+
+    const windowCaption = new Button(this.title + " New Window Tests", {h:15});
+    // this.container.use(new Selectable(windowCaption));
     //
-    this.use( new Movable(windowCaption) );
+    this.container.use( new Movable(windowCaption) );
     // // container.use(new Focusable(windowCaption));
     //
-    this.children.addAll(windowCaption);
+    this.container.children.addAll(windowCaption);
     //
     // const windowBody = new Button("Window Body", {h:200});
     // container.children.add(windowBody);
     //
-    const inputPort = new Button("o <-- Data Input ...........(ThroughPort.js)...............  Data Output --> o", {});
-    this.children.add(inputPort);
-
-    const foreignElementTest = new Button("I am an example DIV Tag, with some text in it.", {h:100});
-    this.children.add(foreignElementTest);
-
-    const foreignElementTest1 = new Button("I am an ANSI Terminal", {h:100});
-    this.children.add(foreignElementTest1);
-
-    const foreignElementTest2 = new Button("I am Code Mirror 6, woot!", {h:100});
-    this.children.add(foreignElementTest2);
 	}
 
-  addTo(container, ...components){
-    this[container].add(...components);
+  add(...components){
+    this.container.children.add(...components);
   }
 
 }

@@ -65,8 +65,8 @@ export default async function(api){
   api.connect(midjourneyPrompt.id, 'output',   outputNode.id, 'input');
 
   // execute your program -------------------------------------------------------------------------------------------------------------
-  const result = await api.run(outputNode.id);
-  console.log('usage.js api.execute said: ', result);
+  // const result = await api.run(outputNode.id);
+  // console.log('usage.js api.execute said: ', result);
 
 
 

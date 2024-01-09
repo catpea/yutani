@@ -12,17 +12,21 @@ Retro-futuristic Visual Programming Language - Moving human capital beyond tomor
 
 ## TODO
 
-- [] Update Selectable to ```const selectable = new Selectable({ handle: this.el.Editor, item:this.data.node });```
-- [] Note about only being able to select Visual Nodes, not raw nodes
-- [] VBox and HBox layout managers for SVG
+- [ ] VBox and HBox layout managers for SVG
+- [ ] Update Selectable to ```const selectable = new Selectable({ handle: this.el.Editor, item:this.data.node });```
+
+## Sanity System
+
+- [ ] Note about only being able to select Visual Nodes, not raw nodes
 
 ## Program Ideas
 
-- [] Atom/Pulsar Plugin For Application Structure Visualization
-- [] Video Slideshow Generator
-- [] Image Gallery Builder
-- [] Static site generator
-- [] RxJs UI
-- [] Prompt Builder
-- [] Ask AI for a list, go over each item refining it with greater detail
-- [] Drop a node anywhere in a web page, monitor/send events and data
+- [ ] Image Gallery Builder ★★☆☆☆
+- [ ] Static Site Generator: Antwerp Yutani ★☆☆☆☆
+- [ ] Atom/Pulsar Plugin For Application Structure Visualization ★☆☆☆☆
+- [ ] Prompt Builder ☆☆☆☆☆
+- [ ] Ask AI for a list, go over each item refining it with greater detail ☆☆☆☆☆
+- [ ] Drop a node anywhere in a web page, monitor/send events and data ☆☆☆☆☆
+- [ ] Video Slideshow Generator ☆☆☆☆☆
+- [ ] RxJs GUI ☆☆☆☆☆
+- [ ] ffmpeg GUI ☆☆☆☆☆
