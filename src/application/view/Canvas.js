@@ -21,6 +21,9 @@ export default class Canvas extends Item {
   scene;
   bg;
 
+  maxZoom = 10;
+  minZoom = 0.05;
+
   renderers = new Map();
 
   constructor(properties, application){
@@ -62,8 +65,9 @@ export default class Canvas extends Item {
     this.panzoom = panzoom(this.scene, {
 			smoothScroll: false, // this is the sluggish post  scrolling effect
 			// transformOrigin: { x: 0.5, y: 0.5 },
-			maxZoom: 100,
-			minZoom: 0.01,
+			maxZoom: this.maxZoom,
+			minZoom: this.minZoom,
+
 			initialX: 0,
 			initialY: 0,
 			// initialZoom: .5,

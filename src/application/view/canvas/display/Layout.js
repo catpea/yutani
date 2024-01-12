@@ -157,3 +157,19 @@ export class HorizontalLayout extends Layout {
 	// calculateChildY() {}
 
 }
+
+export class ManualLayout extends Layout {
+
+	constructor() {
+		super();
+	}
+
+	// calculateW() {}
+	//
+	// calculateH() {}
+	//
+	// calculateChildX() {}
+	//
+	// calculateChildY() {}
+
+}

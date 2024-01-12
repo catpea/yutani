@@ -6733,6 +6733,21 @@
       return response;
     }
   };
+  var ManualLayout = class extends Layout {
+    static {
+      __name(this, "ManualLayout");
+    }
+    constructor() {
+      super();
+    }
+    // calculateW() {}
+    //
+    // calculateH() {}
+    //
+    // calculateChildX() {}
+    //
+    // calculateChildY() {}
+  };
 
   // src/application/view/canvas/display/Cleanable.js
   var Cleanable = class {
@@ -7215,9 +7230,76 @@
       this.observe("h", (height) => update2(this.el.Container, { height }), { autorun: false });
       this.observe("x", (x) => update2(this.el.Container, { x }), { autorun: false });
       this.observe("y", (y) => update2(this.el.Container, { y }), { autorun: false });
+      this.observe("y", (y) => update2(this.el.Container, { y }), { autorun: false });
+      const radiusDomain = new TranslateDomain([0.5, 1], [0, 1]);
+      this.view.observe("transform", ({ scale }) => {
+        if (scale === void 0)
+          scale = 1;
+        const ry = this.design.radius * radiusDomain.translate(scale);
+        console.log(`At scale ${scale}: the radius is ${ry}`);
+        update2(this.el.Container, { ry });
+      });
     }
     get children() {
       return this.#children;
+    }
+  };
+  var TranslateDomain = class {
+    static {
+      __name(this, "TranslateDomain");
+    }
+    clamp = true;
+    sourceRange = [0, 1];
+    targetRange = [0, 1];
+    constructor(sourceRange, targetRange, options = {}) {
+      this.sourceRange = sourceRange;
+      this.targetRange = targetRange;
+      if (options.hasOwnProperty("clamp"))
+        this.clamp = options.clamp;
+    }
+    clamper(num, min, max) {
+      return Math.min(Math.max(num, min), max);
+    }
+    inverter(num, min, max) {
+      if (this.clamp)
+        num = this.clamper(num, this.sourceRange[0], this.sourceRange[1]);
+      const rangeLength = max - min;
+      const distance = Math.abs(rangeLength - num);
+      const invertedValue = max - distance;
+      return invertedValue;
+    }
+    translate(num) {
+      if (this.clamp)
+        num = this.clamper(num, this.sourceRange[0], this.sourceRange[1]);
+      const valueRatio = (num - this.sourceRange[0]) / (this.sourceRange[1] - this.sourceRange[0]);
+      const scaledValue = this.targetRange[0] + valueRatio * (this.targetRange[1] - this.targetRange[0]);
+      return scaledValue;
+    }
+    invert(num) {
+      const invertedValue = this.inverter(num, this.sourceRange[0], this.sourceRange[1]);
+      const translatedValue = this.translate(invertedValue);
+      return translatedValue;
+    }
+  };
+
+  // src/application/view/canvas/display/Workspace.js
+  var Workspace = class extends Container2 {
+    static {
+      __name(this, "Workspace");
+    }
+    constructor(jsonPath, ...arg) {
+      super(...arg);
+      this.layout = new ManualLayout();
+    }
+    createElements() {
+      super.createElements();
+      this.el.Maximize = svg.path({ class: `workspace-icon`, stroke: "green", style: `transform:translateX(${this.x + 10}px) translateY(${this.y + 10}px);`, d: `M1.5 1a.5.5 0 0 0-.5.5v4a.5.5 0 0 1-1 0v-4A1.5 1.5 0 0 1 1.5 0h4a.5.5 0 0 1 0 1zM10 .5a.5.5 0 0 1 .5-.5h4A1.5 1.5 0 0 1 16 1.5v4a.5.5 0 0 1-1 0v-4a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 1-.5-.5M.5 10a.5.5 0 0 1 .5.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 1 0 1h-4A1.5 1.5 0 0 1 0 14.5v-4a.5.5 0 0 1 .5-.5m15 0a.5.5 0 0 1 .5.5v4a1.5 1.5 0 0 1-1.5 1.5h-4a.5.5 0 0 1 0-1h4a.5.5 0 0 0 .5-.5v-4a.5.5 0 0 1 .5-.5` });
+    }
+    updateElements() {
+      super.updateElements();
+      this.observe("x", () => update2(this.el.Maximize, { style: `transform:translateX(${this.w - 10 - 16}px) translateY(${this.y + 10}px);` }));
+      this.observe("y", () => update2(this.el.Maximize, { style: `transform:translateX(${this.w - 10 - 16}px) translateY(${this.y + 10}px);` }));
+      this.observe("w", () => update2(this.el.Maximize, { style: `transform:translateX(${this.w - 10 - 16}px) translateY(${this.y + 10}px);` }));
     }
   };
 
@@ -7354,12 +7436,14 @@
       this.cleanup(this.data.observe("y", (v) => update2(this.g, { "transform": `translate(${this.data.x},${v})` })));
       this.cleanup(this.data.observe("w", (v) => this.w = v));
       this.cleanup(this.data.observe("h", (v) => this.h = v));
-      console.log("xxx", this.data);
       const windowCaption = new Button(`type:${this.data.type}: A Window Tests`, { h: 15 });
       this.use(new Movable3(windowCaption));
       this.children.addAll(windowCaption);
       const inputPort = new Button("o <-- Data Input ...........(ThroughPort.js)...............  Data Output --> o", {});
       this.children.add(inputPort);
+      const workspaceTest = new Workspace("./templates/hello-world.json", { h: 100 });
+      workspaceTest.view = this.view;
+      this.children.add(workspaceTest);
       const foreignElementTest = new Button("I am an example DIV Tag, with some text in it.", { h: 100 });
       this.children.add(foreignElementTest);
       const foreignElementTest1 = new Button("I am an ANSI Terminal", { h: 100 });
@@ -7396,6 +7480,8 @@
     defs;
     scene;
     bg;
+    maxZoom = 10;
+    minZoom = 0.05;
     renderers = /* @__PURE__ */ new Map();
     constructor(properties, application2) {
       super();
@@ -7430,8 +7516,8 @@
         smoothScroll: false,
         // this is the sluggish post  scrolling effect
         // transformOrigin: { x: 0.5, y: 0.5 },
-        maxZoom: 100,
-        minZoom: 0.01,
+        maxZoom: this.maxZoom,
+        minZoom: this.minZoom,
         initialX: 0,
         initialY: 0,
         // initialZoom: .5,

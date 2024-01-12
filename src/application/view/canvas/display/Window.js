@@ -1,6 +1,7 @@
 import { html, svg, text, list, update } from "domek";
 
 import Container from "./Container.js";
+import Workspace from "./Workspace.js";
 import Button from "./Button.js";
 
 import VBox from "./VBox.js";
@@ -25,7 +26,6 @@ export default class Window extends Container {
     this.cleanup(this.data.observe('w', v=>this.w=v));
     this.cleanup(this.data.observe('h', v=>this.h=v));
 
-    console.log('xxx', this.data);
     const windowCaption = new Button(`type:${this.data.type}: A Window Tests`, {h:15});
     // this.use(new Selectable(windowCaption));
     //
@@ -39,6 +39,11 @@ export default class Window extends Container {
     //
     const inputPort = new Button("o <-- Data Input ...........(ThroughPort.js)...............  Data Output --> o", {});
     this.children.add(inputPort);
+
+    const workspaceTest = new Workspace("./templates/hello-world.json", {h:100});
+    workspaceTest.view = this.view;
+
+    this.children.add(workspaceTest);
 
     const foreignElementTest = new Button("I am an example DIV Tag, with some text in it.", {h:100});
     this.children.add(foreignElementTest);

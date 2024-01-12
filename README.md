@@ -12,8 +12,26 @@ Retro-futuristic Visual Programming Language - Moving human capital beyond tomor
 
 ## TODO
 
+### Active
+
+- [ ] Workspace
+  - [ ] Background
+  - [ ] Pan
+  - [ ] Zoom
+  - [ ] Toolbox
+
+### Main
+
 - [ ] VBox and HBox layout managers for SVG
+- [ ] Vertical and Horizontal PortArray.js -> [ o o o o o o o o o o ]
+- [ ] Minimap - draws the standard UI except really zoomed out, so the LOD kicks in.
 - [ ] Update Selectable to ```const selectable = new Selectable({ handle: this.el.Editor, item:this.data.node });```
+- [ ] Floating Label that can be attacked to anything, and move along with it.
+- [ ] Blender Theme
+
+## NODO
+
+- [ ] Consider Text Along Path For Connectors = Hard TO Read
 
 ## Sanity System
 
@@ -21,6 +39,13 @@ Retro-futuristic Visual Programming Language - Moving human capital beyond tomor
 
 ## Program Ideas
 
+- [ ] Split Screen App Example (in->f->out)
+- [ ] ELIZA Chatbot
+- [ ] Wiki Wiki
+- [ ] ExpressJs/KOA Route Builder
+- [ ] Sharp Image Processor
+- [ ] Request Response Patter Builder
+- [ ] State And Reducers Pattern Builder
 - [ ] Image Gallery Builder ★★☆☆☆
 - [ ] Static Site Generator: Antwerp Yutani ★☆☆☆☆
 - [ ] Atom/Pulsar Plugin For Application Structure Visualization ★☆☆☆☆
@@ -30,3 +55,8 @@ Retro-futuristic Visual Programming Language - Moving human capital beyond tomor
 - [ ] Video Slideshow Generator ☆☆☆☆☆
 - [ ] RxJs GUI ☆☆☆☆☆
 - [ ] ffmpeg GUI ☆☆☆☆☆
+
+
+## Acknowledgments
+
+- Bootstrap Icons
