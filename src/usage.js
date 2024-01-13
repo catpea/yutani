@@ -54,7 +54,7 @@ export default async function(api){
   api.add(highresPrompt2);
   api.add(highresPrompt3);
   api.add(midjourneyPrompt);
-  api.add(msg1);
+  // api.add(msg1);
 
   api.add(outputNode);
 

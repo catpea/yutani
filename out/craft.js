@@ -7675,7 +7675,6 @@
     api.add(highresPrompt2);
     api.add(highresPrompt3);
     api.add(midjourneyPrompt);
-    api.add(msg1);
     api.add(outputNode);
     api.connect(somePrompt.id, "output", midjourneyPrompt.id, "prompt");
     api.connect(highresPrompt1.id, "output", midjourneyPrompt.id, "style");
